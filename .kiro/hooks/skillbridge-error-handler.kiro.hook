@@ -1,0 +1,19 @@
+{
+  "enabled": true,
+  "name": "SkillBridge Error Handler",
+  "description": "Handles AI generation failures during portfolio, resume, or roadmap generation with recovery strategies and user-friendly messaging",
+  "version": "1",
+  "when": {
+    "type": "onError",
+    "actions": [
+      "portfolio_generation",
+      "resume_generation",
+      "roadmap_generation",
+      "github_analysis"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "console.log('📡 onError hook TRIGGERED'); An error has occurred in SkillBridge AI generation. Please analyze the error and implement appropriate recovery strategies:\n\nERROR CATEGORIZATION:\n- GitHub API errors: rate limits, connection failures, repository access issues\n- MCP server errors: server unavailable, timeout, invalid responses  \n- Authentication errors: missing user session, expired tokens\n- Database errors: connection failures, query timeouts\n- Rate limiting errors: user exceeded usage limits\n\nRECOVERY STRATEGIES:\n- GitHub API failures: use cached data, implement exponential backoff\n- MCP server failures: fallback to static data from .mockFallbacks/ directory\n- Rate limit hits: suggest retry timing, implement backoff strategy\n- Database errors: retry with exponential backoff, log for monitoring\n\nUSER-FRIENDLY MESSAGES:\n- Rate limit: \"We're experiencing high demand. Please try again in a few minutes.\"\n- GitHub API: \"Unable to connect to GitHub. Please check your connection and try again.\"\n- Authentication: \"Please sign in to continue using SkillBridge features.\"\n- MCP server: \"Our AI services are temporarily unavailable. Please try again later.\"\n- Generic: \"Something went wrong. Our team has been notified and we're working on a fix.\"\n\nERROR TRACKING:\n- Log detailed error information for debugging (stack trace, context, user)\n- Track error metrics for monitoring and alerting\n- Send critical errors to error tracking service\n- Maintain error rate statistics for system health\n\nEnsure users receive helpful error messages while maintaining system reliability through proper error handling and recovery."
+  }
+}

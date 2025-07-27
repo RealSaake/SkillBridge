@@ -1,0 +1,38 @@
+{
+  "jobCategories": [
+    "Software Development",
+    "Data Science",
+    "Product Management",
+    "Design",
+    "Marketing",
+    "Sales"
+  ],
+  "skillLevels": [
+    "Beginner",
+    "Intermediate",
+    "Advanced",
+    "Expert"
+  ],
+  "sampleJobs": [
+    {
+      "id": 1,
+      "title": "Frontend Developer",
+      "company": "TechCorp",
+      "location": "Remote",
+      "type": "Full-time",
+      "skills": ["React", "TypeScript", "CSS", "JavaScript"],
+      "experience": "2-4 years",
+      "salary": "$70,000 - $90,000"
+    },
+    {
+      "id": 2,
+      "title": "Data Scientist",
+      "company": "DataFlow Inc",
+      "location": "San Francisco, CA",
+      "type": "Full-time",
+      "skills": ["Python", "Machine Learning", "SQL", "Statistics"],
+      "experience": "3-5 years",
+      "salary": "$100,000 - $130,000"
+    }
+  ]
+}

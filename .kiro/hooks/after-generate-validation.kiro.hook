@@ -1,0 +1,18 @@
+{
+  "enabled": true,
+  "name": "AfterGenerate Content Validator",
+  "description": "Validates and processes AI-generated content after successful generation, ensuring content quality and logging successful completions for portfolios, resumes, and roadmaps",
+  "version": "1",
+  "when": {
+    "type": "afterGenerate",
+    "actions": [
+      "portfolio_generation",
+      "resume_generation",
+      "roadmap_generation"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "console.log('📡 afterGenerate hook TRIGGERED'); You are the AfterGenerate hook for SkillBridge. Your job is to validate and process AI-generated content after successful generation.\n\nJSON SCHEMA VALIDATION:\n- For portfolio_generation: validate {profile: object, skills: array, projects: array}\n- For resume_generation: validate {sections: array, suggestions: array, overall: number}\n- For roadmap_generation: validate {phases: array, title: string, duration: string}\n- Log any schema violations and provide fallback content\n\nCONTENT QUALITY CHECKS:\n- Verify all required fields are present and non-empty\n- Check for realistic data ranges (scores 0-100, valid dates, etc.)\n- Detect potential hallucinations (impossible metrics, fake URLs)\n- Score content completeness and structure quality\n\nFALLBACK STRATEGY:\n- If validation fails, load content from .mockFallbacks/ directory\n- Log validation failures for monitoring\n- Provide user-friendly error messages\n- Ensure UI never receives malformed data\n\nVALIDATION REQUIREMENTS:\n- For portfolio_generation: validate profile, skills, and projects array exist\n- For resume_generation: verify sections array exists and has content  \n- For roadmap_generation: ensure phases array with skills and duration\n- Throw \"Generated content failed validation\" error if schema invalid\n\nQUALITY ASSESSMENT:\n- Score content quality on 0-1 scale based on completeness and structure\n- Log warning if quality score below 0.7 threshold\n- Consider content length, structure, and required fields\n\nAUDIT TRAIL:\n- Store generated content metadata for compliance and debugging\n- Track user analytics: action completion, content length, quality score\n- Log successful completion with format: \"✅ Completed [action] for user [userId]\"\n\nSUCCESS METRICS:\n- Record generation time, content size, and quality metrics\n- Update user engagement analytics\n- Prepare data for dashboard and monitoring systems\n\nAnalyze the changed files and validate any generated content according to these requirements."
+  }
+}

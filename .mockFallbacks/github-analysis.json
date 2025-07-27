@@ -1,0 +1,71 @@
+{
+  "sampleAnalysis": {
+    "profile": {
+      "name": "Sample Developer",
+      "followers": 50,
+      "publicRepos": 25,
+      "accountAge": 2.5
+    },
+    "activity": {
+      "totalStars": 150,
+      "recentlyActiveRepos": 8,
+      "languages": ["JavaScript", "Python", "TypeScript"],
+      "frameworks": ["React", "Node.js", "Express"],
+      "commitFrequency": "regular",
+      "contributionStreak": 30
+    },
+    "insights": {
+      "experienceLevel": "Intermediate",
+      "activityLevel": "High",
+      "roleAlignment": {
+        "frontend": 85,
+        "backend": 70,
+        "fullstack": 90,
+        "data-science": 40
+      },
+      "strengths": [
+        "Consistent contribution pattern",
+        "Modern JavaScript proficiency",
+        "Full-stack development experience"
+      ],
+      "improvements": [
+        "Add more comprehensive documentation",
+        "Implement testing in projects",
+        "Contribute to open-source projects"
+      ]
+    }
+  },
+  "skillLevels": {
+    "1": "Beginner - Basic syntax and concepts",
+    "2": "Novice - Can build simple projects with guidance", 
+    "3": "Intermediate - Can build projects independently",
+    "4": "Advanced - Can handle complex projects and mentor others",
+    "5": "Expert - Deep understanding and can architect solutions"
+  },
+  "projectTypes": {
+    "tutorial": "Following along with tutorials or courses",
+    "personal": "Original projects for learning or portfolio",
+    "collaborative": "Working with others on shared projects",
+    "professional": "Production-ready or work-related projects"
+  },
+  "qualityIndicators": {
+    "documentation": {
+      "poor": "No README or minimal documentation",
+      "basic": "Basic README with setup instructions",
+      "good": "Comprehensive README with examples",
+      "excellent": "Full documentation with API docs and examples"
+    },
+    "codeStructure": {
+      "poor": "No clear organization or structure",
+      "basic": "Some organization but inconsistent",
+      "good": "Well-organized with clear separation of concerns",
+      "excellent": "Professional structure following best practices"
+    },
+    "testing": {
+      "none": "No tests present",
+      "basic": "Some unit tests for core functionality",
+      "good": "Comprehensive test coverage",
+      "excellent": "Full test suite with integration and e2e tests"
+    }
+  }
+}

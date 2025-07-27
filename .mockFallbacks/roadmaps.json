@@ -1,0 +1,154 @@
+{
+  "frontend-developer": {
+    "title": "Frontend Developer Roadmap",
+    "phases": [
+      {
+        "phase": "Fundamentals",
+        "duration": "2-3 months",
+        "skills": ["HTML5", "CSS3", "JavaScript ES6+", "Git/GitHub", "Browser DevTools"],
+        "projects": ["Personal portfolio", "Landing page", "Simple calculator"],
+        "milestones": [
+          "Build responsive webpage without frameworks",
+          "Complete JavaScript fundamentals course",
+          "Deploy first project to GitHub Pages"
+        ]
+      },
+      {
+        "phase": "Intermediate",
+        "duration": "3-4 months", 
+        "skills": ["React/Vue/Angular", "State Management", "API Integration", "Responsive Design", "CSS Frameworks"],
+        "projects": ["Todo app", "Weather app", "E-commerce frontend"],
+        "milestones": [
+          "Build React application with hooks",
+          "Integrate with REST API",
+          "Implement responsive design patterns"
+        ]
+      },
+      {
+        "phase": "Advanced",
+        "duration": "4-6 months",
+        "skills": ["TypeScript", "Testing (Jest/Cypress)", "Build Tools", "Performance Optimization", "Accessibility"],
+        "projects": ["Full-stack application", "Component library", "PWA"],
+        "milestones": [
+          "Write comprehensive test suite",
+          "Optimize application performance",
+          "Implement accessibility standards"
+        ]
+      }
+    ]
+  },
+  "backend-developer": {
+    "title": "Backend Developer Roadmap",
+    "phases": [
+      {
+        "phase": "Fundamentals",
+        "duration": "2-3 months",
+        "skills": ["Programming Language (Python/Node.js/Java)", "Databases (SQL)", "HTTP/REST APIs", "Git"],
+        "projects": ["Simple REST API", "CRUD application", "Database design"],
+        "milestones": [
+          "Build basic REST API",
+          "Design normalized database schema",
+          "Implement authentication system"
+        ]
+      },
+      {
+        "phase": "Intermediate", 
+        "duration": "3-4 months",
+        "skills": ["Frameworks (Express/Django/Spring)", "Authentication", "Database Design", "API Documentation"],
+        "projects": ["User management system", "Blog API", "File upload service"],
+        "milestones": [
+          "Implement JWT authentication",
+          "Create comprehensive API documentation",
+          "Handle file uploads and storage"
+        ]
+      },
+      {
+        "phase": "Advanced",
+        "duration": "4-6 months",
+        "skills": ["Microservices", "Caching", "Message Queues", "Testing", "DevOps Basics"],
+        "projects": ["Microservices architecture", "Real-time chat app", "Scalable API"],
+        "milestones": [
+          "Deploy microservices architecture",
+          "Implement caching strategy",
+          "Set up CI/CD pipeline"
+        ]
+      }
+    ]
+  },
+  "fullstack-developer": {
+    "title": "Full Stack Developer Roadmap", 
+    "phases": [
+      {
+        "phase": "Frontend Basics",
+        "duration": "2-3 months",
+        "skills": ["HTML/CSS/JavaScript", "React/Vue", "State Management", "API Integration"],
+        "projects": ["Portfolio website", "Frontend for existing API"],
+        "milestones": [
+          "Build responsive React application",
+          "Integrate with external APIs",
+          "Implement client-side routing"
+        ]
+      },
+      {
+        "phase": "Backend Basics",
+        "duration": "2-3 months", 
+        "skills": ["Node.js/Python", "Databases", "REST APIs", "Authentication"],
+        "projects": ["Backend API", "Database design"],
+        "milestones": [
+          "Create RESTful API endpoints",
+          "Implement user authentication",
+          "Design efficient database schema"
+        ]
+      },
+      {
+        "phase": "Full Stack Integration",
+        "duration": "4-6 months",
+        "skills": ["Full Stack Frameworks", "Deployment", "Testing", "DevOps"],
+        "projects": ["Complete web application", "E-commerce platform", "Social media app"],
+        "milestones": [
+          "Deploy full-stack application",
+          "Implement end-to-end testing",
+          "Set up monitoring and logging"
+        ]
+      }
+    ]
+  },
+  "data-scientist": {
+    "title": "Data Scientist Roadmap",
+    "phases": [
+      {
+        "phase": "Fundamentals",
+        "duration": "3-4 months",
+        "skills": ["Python/R", "Statistics", "Pandas/NumPy", "Data Visualization", "SQL"],
+        "projects": ["Data analysis project", "Visualization dashboard", "Statistical analysis"],
+        "milestones": [
+          "Complete statistical analysis project",
+          "Build interactive data dashboard",
+          "Master data manipulation with Pandas"
+        ]
+      },
+      {
+        "phase": "Machine Learning",
+        "duration": "4-5 months",
+        "skills": ["Scikit-learn", "Machine Learning Algorithms", "Feature Engineering", "Model Evaluation"],
+        "projects": ["Prediction model", "Classification project", "Regression analysis"],
+        "milestones": [
+          "Build and evaluate ML model",
+          "Implement feature engineering pipeline",
+          "Deploy model to production"
+        ]
+      },
+      {
+        "phase": "Advanced",
+        "duration": "5-6 months",
+        "skills": ["Deep Learning", "TensorFlow/PyTorch", "Big Data Tools", "MLOps", "Cloud Platforms"],
+        "projects": ["Neural network project", "NLP application", "Computer vision project"],
+        "milestones": [
+          "Build deep learning model",
+          "Implement MLOps pipeline",
+          "Deploy on cloud platform"
+        ]
+      }
+    ]
+  }
+}

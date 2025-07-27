@@ -1,0 +1,55 @@
+{
+  "mcpServers": {
+    "github-projects": {
+      "command": "npx",
+      "args": [
+        "tsx",
+        "mcp-servers/githubFetcher.ts"
+      ],
+      "env": {},
+      "disabled": false,
+      "autoApprove": [
+        "fetch_github_profile",
+        "fetch_github_repos"
+      ]
+    },
+    "resume-tips": {
+      "command": "npx",
+      "args": [
+        "tsx",
+        "mcp-servers/resumeTipsProvider.ts"
+      ],
+      "env": {},
+      "disabled": false,
+      "autoApprove": [
+        "get_resume_tips"
+      ]
+    },
+    "roadmap-data": {
+      "command": "npx",
+      "args": [
+        "tsx",
+        "mcp-servers/roadmapProvider.ts"
+      ],
+      "env": {},
+      "disabled": false,
+      "autoApprove": [
+        "list_available_roadmaps",
+        "get_career_roadmap"
+      ]
+    },
+    "portfolio-analyzer": {
+      "command": "npx",
+      "args": [
+        "tsx",
+        "mcp-servers/portfolioAnalyzer.ts"
+      ],
+      "env": {},
+      "disabled": false,
+      "autoApprove": [
+        "analyze_github_activity",
+        "find_skill_gaps"
+      ]
+    }
+  }
+}

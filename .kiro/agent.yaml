@@ -1,0 +1,35 @@
+name: skillbridge-agent
+description: >
+  The AI backbone of SkillBridge — handles portfolio generation, resume crafting,
+  roadmap planning, and GitHub data interpretation using MCPs for production-ready
+  career development features.
+
+mcp:
+  github-projects: "mcp-servers/githubFetcher.ts"
+  resume-tips: "mcp-servers/resumeTipsProvider.ts"
+  roadmap-data: "mcp-servers/roadmapProvider.ts"
+  portfolio-analyzer: "mcp-servers/portfolioAnalyzer.ts"
+
+# hooks:
+#   beforeGenerate: "hooks/beforeGenerate.js"
+#   afterGenerate: "hooks/afterGenerate.js"
+#   onError: "hooks/onError.js"
+
+include:
+  - agents/portfolio-builder.agent.md
+  - agents/resume-generator.agent.md
+  - agents/roadmap-curator.agent.md
+  - agents/github-analyzer.agent.md
+
+context:
+  - specs/skillbridge-platform/requirements.md
+  - specs/skillbridge-platform/design.md
+  - steering/tech.md
+  - steering/product.md
+
+settings:
+  useMCP: true
+  enableHooks: true
+  logLevel: "debug"
+  maxRetries: 3
+  timeout: 30000

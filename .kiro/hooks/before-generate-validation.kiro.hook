@@ -1,0 +1,19 @@
+{
+  "enabled": true,
+  "name": "BeforeGenerate Hook",
+  "description": "Validates user authentication, rate limits, and GitHub connections before any AI agent generates career content (portfolio, resume, roadmap) on the SkillBridge platform",
+  "version": "1",
+  "when": {
+    "type": "beforeGenerate",
+    "actions": [
+      "portfolio_generation",
+      "resume_generation", 
+      "roadmap_generation",
+      "github_analysis"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "console.log('📡 beforeGenerate hook TRIGGERED'); You are the SkillBridge beforeGenerate validation hook. Before any AI content generation, perform these checks:\n\n1. AUTHENTICATION CHECK:\n   - If action involves 'portfolio' or 'resume' generation, verify user is authenticated\n   - Throw error \"User authentication required for career features\" if no userId\n   - Allow non-sensitive actions to proceed without authentication\n\n2. RATE LIMITING:\n   - Check if user has exceeded rate limits for the specific action\n   - Throw error \"Rate limit exceeded. Please try again in a few minutes.\" if limit hit\n   - For development, allow all requests (implement Redis-based limiting later)\n\n3. LOGGING:\n   - Log the start of each action with userId and action type\n   - Use format: \"🚀 Starting [action] for user [userId]\"\n   - Include timestamp and action metadata for debugging\n\n4. GITHUB CONNECTION CHECK:\n   - For GitHub-dependent features (portfolio, analysis), verify GitHub connection exists\n   - Log warning if missing but don't block (graceful degradation)\n   - Check MCP server health for github-projects server\n\nPrevent unauthorized access to career features while maintaining developer-friendly logging and error messages. The context is that SkillBridge has 4 MCP servers (github-projects, resume-tips, roadmap-data, portfolio-analyzer) that help users create portfolios, resumes, and learning roadmaps from their GitHub data."
+  }
+}
