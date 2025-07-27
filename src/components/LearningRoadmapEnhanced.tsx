@@ -7,7 +7,7 @@ import { Progress } from './ui/progress';
 import { Skeleton } from './ui/skeleton';
 import { useTheme } from '../App';
 import { useLearningRoadmap } from '../hooks/useMCP';
-import type { LearningRoadmap } from '../types/mcp-types';
+// import type { LearningRoadmap } from '../types/mcp-types';
 
 interface LearningRoadmapEnhancedProps {
   targetRole: string;

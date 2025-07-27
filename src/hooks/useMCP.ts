@@ -46,24 +46,24 @@ interface MCPServerConfig {
   cwd?: string;
 }
 
-// MCP JSON-RPC Request/Response Types
-interface MCPRequest {
-  jsonrpc: '2.0';
-  id: string | number;
-  method: string;
-  params?: Record<string, any>;
-}
+// MCP JSON-RPC Request/Response Types (commented out unused interfaces)
+// interface MCPRequest {
+//   jsonrpc: '2.0';
+//   id: string | number;
+//   method: string;
+//   params?: Record<string, any>;
+// }
 
-interface MCPResponse<T = any> {
-  jsonrpc: '2.0';
-  id: string | number;
-  result?: T;
-  error?: {
-    code: number;
-    message: string;
-    data?: unknown;
-  };
-}
+// interface MCPResponse<T = any> {
+//   jsonrpc: '2.0';
+//   id: string | number;
+//   result?: T;
+//   error?: {
+//     code: number;
+//     message: string;
+//     data?: unknown;
+//   };
+// }
 
 // Real MCP Client Implementation
 class MCPClient {
@@ -658,6 +658,7 @@ function useMCP<T>(
     } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [serverName, toolName, params, ...dependencies]);
 
   useEffect(() => {

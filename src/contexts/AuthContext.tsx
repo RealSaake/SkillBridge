@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 
 interface User {
   id: string;
@@ -95,7 +95,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   // Fetch current user
-  const fetchUser = async (): Promise<User | null> => {
+  const fetchUser = useCallback(async (): Promise<User | null> => {
     try {
       const response = await apiCall('/auth/me');
       
@@ -119,7 +119,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.error('Error fetching user:', error);
       return null;
     }
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Login function
   const login = async (accessToken: string, refreshTokenValue: string): Promise<void> => {
@@ -154,7 +155,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   // Refresh token function
-  const refreshToken = async (): Promise<boolean> => {
+  const refreshToken = useCallback(async (): Promise<boolean> => {
     try {
       const refreshTokenValue = getRefreshToken();
       
@@ -186,7 +187,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setUser(null);
       return false;
     }
-  };
+  }, []);
 
   // Update user data
   const updateUser = (userData: Partial<User>) => {
@@ -212,7 +213,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     initializeAuth();
-  }, []);
+  }, [fetchUser]);
 
   // Auto-refresh token before expiration
   useEffect(() => {
@@ -223,7 +224,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, 10 * 60 * 1000); // Refresh every 10 minutes
 
     return () => clearInterval(interval);
-  }, [user]);
+  }, [user, refreshToken]);
 
   const value: AuthContextType = {
     user,

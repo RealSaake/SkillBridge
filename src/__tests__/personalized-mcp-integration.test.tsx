@@ -161,9 +161,10 @@ describe('Personalized MCP Integration', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Personalized Recommendations')).toBeInTheDocument();
-        expect(screen.getByText(/Consider projects that align with your goal: Learn React/)).toBeInTheDocument();
-        expect(screen.getByText(/Focus on backend development to balance your skills/)).toBeInTheDocument();
       });
+      
+      expect(screen.getByText(/Consider projects that align with your goal: Learn React/)).toBeInTheDocument();
+      expect(screen.getByText(/Focus on backend development to balance your skills/)).toBeInTheDocument();
     });
 
     it('should handle loading states correctly', () => {
@@ -214,9 +215,10 @@ describe('Personalized MCP Integration', () => {
 
       await waitFor(() => {
         expect(screen.getByText('25')).toBeInTheDocument(); // Total stars
-        expect(screen.getByText('3')).toBeInTheDocument(); // Active repos
-        expect(screen.getByText('75%')).toBeInTheDocument(); // Role alignment
       });
+      
+      expect(screen.getByText('3')).toBeInTheDocument(); // Active repos
+      expect(screen.getByText('75%')).toBeInTheDocument(); // Role alignment
     });
   });
 
@@ -336,8 +338,9 @@ describe('Personalized MCP Integration', () => {
 
       await waitFor(() => {
         expect(screen.getByText(/Unable to load GitHub data/)).toBeInTheDocument();
-        expect(screen.getByText('Retry')).toBeInTheDocument();
       });
+      
+      expect(screen.getByText('Retry')).toBeInTheDocument();
     });
 
     it('should provide retry functionality on error', async () => {

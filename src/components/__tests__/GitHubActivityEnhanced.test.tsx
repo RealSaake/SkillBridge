@@ -1,5 +1,5 @@
 import { screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+// import userEvent from '@testing-library/user-event';
 import { GitHubActivityEnhanced } from '../GitHubActivityEnhanced';
 import { render } from '../../utils/test-utils';
 
@@ -51,9 +51,7 @@ describe('GitHubActivityEnhanced', () => {
     
     await waitFor(() => {
       const refreshButton = screen.queryByRole('button', { name: /refresh/i });
-      if (refreshButton) {
-        expect(refreshButton).toBeInTheDocument();
-      }
+      expect(refreshButton).toBeTruthy();
     }, { timeout: 3000 });
   });
 
@@ -62,9 +60,7 @@ describe('GitHubActivityEnhanced', () => {
     
     await waitFor(() => {
       const collapseButton = screen.queryByRole('button', { name: /collapse/i });
-      if (collapseButton) {
-        expect(collapseButton).toBeInTheDocument();
-      }
+      expect(collapseButton).toBeTruthy();
     }, { timeout: 3000 });
   });
 
