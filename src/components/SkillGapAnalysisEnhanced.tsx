@@ -7,6 +7,8 @@ import { Progress } from './ui/progress';
 import { Skeleton } from './ui/skeleton';
 import { useTheme } from '../App';
 import { useSkillGaps, useGitHubRepos } from '../hooks/useMCP';
+import { usePersonalizedSkillGapAnalysis } from '../hooks/usePersonalizedMCP';
+import { useAuth } from '../contexts/AuthContext';
 import type { SkillGap } from '../types/mcp-types';
 
 interface SkillGapAnalysisEnhancedProps {

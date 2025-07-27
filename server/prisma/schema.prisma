@@ -1,0 +1,111 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  githubId  Int      @unique @map("github_id")
+  username  String   @unique
+  email     String   @unique
+  avatarUrl String?  @map("avatar_url")
+  name      String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  profile UserProfile?
+  skills  UserSkill[]
+  sessions UserSession[]
+  progress LearningProgress[]
+
+  @@map("users")
+}
+
+model UserProfile {
+  id              String   @id @default(cuid())
+  userId          String   @unique @map("user_id")
+  currentRole     String?  @map("current_role")
+  targetRole      String?  @map("target_role")
+  experienceLevel String?  @map("experience_level")
+  careerGoals     String[] @map("career_goals")
+  bio             String?
+  location        String?
+  website         String?
+  linkedinUrl     String?  @map("linkedin_url")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+model UserSkill {
+  id               String   @id @default(cuid())
+  userId           String   @map("user_id")
+  skillName        String   @map("skill_name")
+  proficiencyLevel Int      @map("proficiency_level") // 1-10 scale
+  lastAssessed     DateTime @default(now()) @map("last_assessed")
+  isVerified       Boolean  @default(false) @map("is_verified")
+  source           String   @default("self-assessment") // self-assessment, github-analysis, quiz
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, skillName])
+  @@map("user_skills")
+}
+
+model UserSession {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  refreshToken String   @unique @map("refresh_token")
+  userAgent    String?  @map("user_agent")
+  ipAddress    String?  @map("ip_address")
+  expiresAt    DateTime @map("expires_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_sessions")
+}
+
+model LearningProgress {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id")
+  skillName     String   @map("skill_name")
+  progressType  String   @map("progress_type") // roadmap, course, project
+  progressValue Int      @map("progress_value") // percentage or points
+  metadata      Json?    // flexible data for different progress types
+  achievedAt    DateTime @default(now()) @map("achieved_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("learning_progress")
+}
+
+model DashboardWidget {
+  id       String @id @default(cuid())
+  userId   String @map("user_id")
+  widgetId String @map("widget_id") // github-activity, skill-gaps, etc.
+  position Int
+  size     String @default("medium") // small, medium, large
+  config   Json?  // widget-specific configuration
+  isActive Boolean @default(true) @map("is_active")
+
+  @@unique([userId, widgetId])
+  @@map("dashboard_widgets")
+}
