@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Github, GitCommit, GitPullRequest, Star, ChevronDown, ChevronUp, AlertCircle, Loader2, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -283,7 +283,7 @@ export function GitHubActivityEnhanced({
                                 <h4 className="text-sm mb-3">Top Repositories</h4>
                                 <div className="space-y-3">
                                     {getTopRepositories().length > 0 ? (
-                                        getTopRepositories().map((repo) => (
+                                        getTopRepositories().map((repo: any) => (
                                             <div key={repo.name} className={`p-3 rounded-lg border ${theme === 'dark' ? 'border-gray-600 bg-gray-750' : 'border-gray-200 bg-gray-50'
                                                 }`}>
                                                 <div className="flex items-center justify-between">

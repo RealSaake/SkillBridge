@@ -1,12 +1,11 @@
 # Dependencies
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+server/node_modules/
 
 # Production builds
 build/
 dist/
+server/dist/
 
 # Environment variables
 .env
@@ -14,26 +13,13 @@ dist/
 .env.development.local
 .env.test.local
 .env.production.local
-
-# IDE and editor files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
+server/.env
 
 # Logs
-logs
-*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
 
 # Runtime data
 pids
@@ -76,56 +62,46 @@ jspm_packages/
 .cache
 .parcel-cache
 
-# next.js build output
+# Next.js build output
 .next
 
-# nuxt.js build output
+# Nuxt.js build / generate output
 .nuxt
 
-# vuepress build output
-.vuepress/dist
+# Gatsby files
+.cache/
+public
 
-# Serverless directories
-.serverless
-
-# FuseBox cache
-.fusebox/
-
-# DynamoDB Local files
-.dynamodb/
-
-# TernJS port file
-.tern-port
-
-# Stores VSCode versions used for testing VSCode extensions
-.vscode-test
+# Storybook build outputs
+.out
+.storybook-out
 
 # Temporary folders
 tmp/
 temp/
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-# MCP server specific
-mcp-servers/__pycache__/
-mcp-servers/*.pyc
-mcp-servers/venv/
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
-# Test artifacts
-test-results/
-playwright-report/
-test-results.xml
+# Database
+*.sqlite
+*.db
 
-# Kiro IDE
-.kiro/cache/
-.kiro/logs/
+# Prisma
+server/prisma/migrations/
+
+# MCP server logs
+mcp-servers/*.log
