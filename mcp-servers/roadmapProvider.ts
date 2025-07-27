@@ -11,6 +11,11 @@ const server = new Server(
   {
     name: 'roadmap-provider',
     version: '0.1.0',
+  },
+  {
+    capabilities: {
+      tools: {}
+    }
   }
 );
 

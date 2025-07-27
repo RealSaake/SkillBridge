@@ -11,6 +11,11 @@ const server = new Server(
   {
     name: 'resume-tips',
     version: '0.1.0',
+  },
+  {
+    capabilities: {
+      tools: {}
+    }
   }
 );
 

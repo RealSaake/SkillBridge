@@ -67,7 +67,7 @@ describe('[FINAL] Sprint 2: Full Functional MCP Flow Validation', () => {
   it('renders all Enhanced components and validates MCP integration', async () => {
     console.log("📂 Rendering Dashboard with all Enhanced components...");
     
-    render(<Dashboard username="testuser" targetRole="frontend-developer" />);
+    render(<Dashboard />);
 
     // Verify Dashboard renders without crashing
     console.log("🏠 Dashboard component rendered successfully");
@@ -79,7 +79,7 @@ describe('[FINAL] Sprint 2: Full Functional MCP Flow Validation', () => {
   it('validates ResumeReviewEnhanced with real file upload', async () => {
     console.log("📄 Testing ResumeReviewEnhanced component...");
     
-    render(<Dashboard username="testuser" targetRole="frontend-developer" />);
+    render(<Dashboard />);
 
     // Look for resume upload functionality
     const resumeSection = screen.getByTestId('resume-review-enhanced');
@@ -99,7 +99,7 @@ describe('[FINAL] Sprint 2: Full Functional MCP Flow Validation', () => {
   it('validates GitHubActivityEnhanced with real GitHub data', async () => {
     console.log("🐙 Testing GitHubActivityEnhanced component...");
     
-    render(<Dashboard username="testuser" targetRole="frontend-developer" />);
+    render(<Dashboard />);
 
     const githubSection = screen.getByTestId('github-activity-enhanced');
     expect(githubSection).toBeInTheDocument();
@@ -119,7 +119,7 @@ describe('[FINAL] Sprint 2: Full Functional MCP Flow Validation', () => {
   it('validates SkillGapAnalysisEnhanced with real analysis', async () => {
     console.log("📊 Testing SkillGapAnalysisEnhanced component...");
     
-    render(<Dashboard username="testuser" targetRole="frontend-developer" />);
+    render(<Dashboard />);
 
     const skillGapSection = screen.getByTestId('skill-gap-analysis-enhanced');
     expect(skillGapSection).toBeInTheDocument();
@@ -138,7 +138,7 @@ describe('[FINAL] Sprint 2: Full Functional MCP Flow Validation', () => {
   it('validates LearningRoadmapEnhanced with real roadmap data', async () => {
     console.log("🧠 Testing LearningRoadmapEnhanced component...");
     
-    render(<Dashboard username="testuser" targetRole="frontend-developer" />);
+    render(<Dashboard />);
 
     const roadmapSection = screen.getByTestId('learning-roadmap-enhanced');
     expect(roadmapSection).toBeInTheDocument();
@@ -157,7 +157,7 @@ describe('[FINAL] Sprint 2: Full Functional MCP Flow Validation', () => {
   it('validates complete end-to-end MCP data flow', async () => {
     console.log("🔄 Testing complete end-to-end MCP data flow...");
     
-    render(<Dashboard username="testuser" targetRole="frontend-developer" />);
+    render(<Dashboard />);
 
     // Verify all MCP servers are connected
     console.log("🔍 Verifying MCP server connections...");
@@ -172,12 +172,15 @@ describe('[FINAL] Sprint 2: Full Functional MCP Flow Validation', () => {
     await waitFor(() => {
       // Check that all enhanced components are present and have loaded
       expect(screen.getByTestId('resume-review-enhanced')).toBeInTheDocument();
-      expect(screen.getByTestId('github-activity-enhanced')).toBeInTheDocument();
-      expect(screen.getByTestId('skill-gap-analysis-enhanced')).toBeInTheDocument();
-      expect(screen.getByTestId('learning-roadmap-enhanced')).toBeInTheDocument();
+      // expect(screen.getByTestId('github-activity-enhanced')).toBeInTheDocument();
+      // expect(screen.getByTestId('skill-gap-analysis-enhanced')).toBeInTheDocument();
+      // expect(screen.getByTestId('learning-roadmap-enhanced')).toBeInTheDocument();
     }, { timeout: 5000 });
 
-    console.log("🎉 ALL MCP-ENHANCED COMPONENTS WORK WITH REAL DATA!");
+    
+    expect(screen.getByTestId('github-activity-enhanced')).toBeInTheDocument();
+    expect(screen.getByTestId('skill-gap-analysis-enhanced')).toBeInTheDocument();
+    expect(screen.getByTestId('learning-roadmap-enhanced')).toBeInTheDocument();    console.log("🎉 ALL MCP-ENHANCED COMPONENTS WORK WITH REAL DATA!");
     console.log("✅ End-to-end MCP data flow validated successfully");
   });
 
@@ -216,7 +219,7 @@ describe('[FINAL] Sprint 2: Full Functional MCP Flow Validation', () => {
   it('validates TypeScript type safety across MCP integration', async () => {
     console.log("🔒 Validating TypeScript type safety...");
     
-    render(<Dashboard username="testuser" targetRole="frontend-developer" />);
+    render(<Dashboard />);
 
     // This test ensures TypeScript compilation passes
     // and no implicit any types are used in MCP integration

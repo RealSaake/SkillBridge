@@ -5,12 +5,20 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import {
     CallToolRequestSchema,
     ListToolsRequestSchema,
+    CallToolRequest
 } from '@modelcontextprotocol/sdk/types.js';
 
-const server = new Server({
-    name: 'github-fetcher',
-    version: '0.1.0',
-});
+const server = new Server(
+    {
+        name: 'github-fetcher',
+        version: '0.1.0',
+    },
+    {
+        capabilities: {
+            tools: {}
+        }
+    }
+);
 
 // List available tools
 server.setRequestHandler(ListToolsRequestSchema, async () => {
@@ -55,7 +63,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 });
 
 // Handle tool calls
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
+server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest) => {
     const { name, arguments: args } = request.params;
 
     try {
