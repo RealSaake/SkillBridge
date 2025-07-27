@@ -1,4 +1,4 @@
-import React from 'react';
+// import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../App';
 import { GitHubActivityEnhanced } from './GitHubActivityEnhanced';
