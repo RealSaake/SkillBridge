@@ -5,8 +5,8 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index-minimal.ts",
-    "build": "tsc src/index-minimal.ts --outDir dist --target ES2022 --module commonjs --esModuleInterop --skipLibCheck --noImplicitAny false",
-    "start": "node dist/index-minimal.js",
+    "build": "tsc src/simple-server.ts --outDir dist --target ES2022 --module commonjs --esModuleInterop --skipLibCheck --noImplicitAny false",
+    "start": "node dist/simple-server.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "db:generate": "prisma generate",
