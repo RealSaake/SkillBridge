@@ -1,32 +1,18 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
-import { errorHandler } from './middleware/errorHandler';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Security middleware
-app.use(helmet());
+// Middleware
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'https://skillbridgev1.vercel.app',
   credentials: true
 }));
+app.use(express.json());
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
-});
-app.use(limiter);
-
-// Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
-
-// Health check endpoint
+// Health check
 app.get('/health', (_req, res) => {
   res.json({ 
     status: 'ok', 
@@ -36,25 +22,7 @@ app.get('/health', (_req, res) => {
   });
 });
 
-// Basic API info
-app.get('/api', (_req, res) => {
-  res.json({
-    name: 'SkillBridge API',
-    version: '1.0.0',
-    description: 'AI-powered career development platform API',
-    endpoints: {
-      health: '/health',
-      auth: '/api/auth/*',
-      users: '/api/users/*',
-      profiles: '/api/profiles/*',
-      skills: '/api/skills/*',
-      dashboard: '/api/dashboard/*',
-      mcp: '/api/mcp/*'
-    }
-  });
-});
-
-// Real GitHub OAuth endpoints
+// GitHub OAuth endpoints
 app.get('/api/auth/github', (_req, res) => {
   const clientId = process.env.GITHUB_CLIENT_ID;
   const baseUrl = process.env.RAILWAY_PUBLIC_DOMAIN 
@@ -104,7 +72,7 @@ app.get('/api/auth/github/callback', async (req, res) => {
       }),
     });
     
-    const tokenData = await tokenResponse.json();
+    const tokenData: any = await tokenResponse.json();
     
     if (tokenData.error) {
       console.error('❌ GitHub token exchange error:', tokenData.error);
@@ -119,7 +87,7 @@ app.get('/api/auth/github/callback', async (req, res) => {
       },
     });
     
-    const userData = await userResponse.json();
+    const userData: any = await userResponse.json();
     
     if (!userData.id) {
       console.error('❌ Failed to get user data from GitHub');
@@ -141,54 +109,18 @@ app.get('/api/auth/github/callback', async (req, res) => {
   }
 });
 
-// Mock user endpoint for development
-app.get('/api/auth/me', (_req, res) => {
+// Basic API info
+app.get('/api', (_req, res) => {
   res.json({
-    id: 'demo-user',
-    username: 'demo-user',
-    email: 'demo@skillbridge.dev',
-    name: 'Demo User',
-    avatarUrl: 'https://github.com/github.png',
-    profile: {
-      currentRole: 'Developer',
-      targetRole: 'Senior Developer',
-      experienceLevel: 'intermediate'
-    }
+    name: 'SkillBridge API',
+    version: '1.0.0',
+    description: 'AI-powered career development platform API'
   });
-});
-
-// Mock logout endpoint
-app.post('/api/auth/logout', (_req, res) => {
-  res.json({ message: 'Logged out successfully' });
-});
-
-// Mock refresh endpoint
-app.post('/api/auth/refresh', (_req, res) => {
-  res.json({
-    accessToken: 'mock-access-token',
-    refreshToken: 'mock-refresh-token',
-    user: {
-      id: 'demo-user',
-      username: 'demo-user',
-      email: 'demo@skillbridge.dev',
-      name: 'Demo User',
-      avatarUrl: 'https://github.com/github.png'
-    }
-  });
-});
-
-// Error handling middleware
-app.use(errorHandler);
-
-// 404 handler
-app.use((_req, res) => {
-  res.status(404).json({ error: 'Not Found' });
 });
 
 app.listen(PORT, () => {
   console.log(`🚀 SkillBridge API server running on port ${PORT}`);
   console.log(`📊 Health check: https://skillbridge-production-ea3f.up.railway.app/health`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
 export default app;
