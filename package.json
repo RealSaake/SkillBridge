@@ -61,10 +61,10 @@
     "tailwindcss": "^3.3.0"
   },
   "scripts": {
-    "start": "cd server && npm start",
-    "start:frontend": "react-scripts start",
-    "build": "cd server && npm run build",
-    "build:frontend": "react-scripts build",
+    "start": "react-scripts start",
+    "start:server": "cd server && npm start",
+    "build": "react-scripts build",
+    "build:server": "cd server && npm run build",
     "build:mcp": "./scripts/build-mcp-servers.sh",
     "railway:build": "cd server && npm install && npm run build",
     "railway:start": "cd server && npm start",
