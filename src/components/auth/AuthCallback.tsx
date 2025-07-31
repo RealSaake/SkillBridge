@@ -16,10 +16,24 @@ export const AuthCallback: React.FC = () => {
         const token = searchParams.get('token');
         const refreshToken = searchParams.get('refresh');
         const error = searchParams.get('error');
+        const demo = searchParams.get('demo');
 
         if (error) {
           setStatus('error');
           setErrorMessage(getErrorMessage(error));
+          return;
+        }
+
+        // Handle demo mode
+        if (demo === 'true') {
+          // Simulate successful login with demo tokens
+          await login('demo-access-token', 'demo-refresh-token');
+          setStatus('success');
+          
+          // Redirect to dashboard after a brief success message
+          setTimeout(() => {
+            navigate('/dashboard', { replace: true });
+          }, 1500);
           return;
         }
 

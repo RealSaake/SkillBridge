@@ -20,13 +20,36 @@ export default function Dashboard() {
     }
   };
 
-  if (!user) {
+  // Development mode: create mock user if none exists
+  const mockUser = {
+    id: 'dev-user-123',
+    username: 'developer',
+    name: 'Development User',
+    email: 'dev@skillbridge.com',
+    avatarUrl: 'https://github.com/github.png',
+    profile: {
+      currentRole: 'Frontend Developer',
+      targetRole: 'Full Stack Developer',
+      experienceLevel: 'intermediate',
+      careerGoals: ['Learn React', 'Master Node.js', 'Get AWS certification']
+    },
+    skills: [
+      { skillName: 'JavaScript', proficiencyLevel: 8, source: 'github-analysis' },
+      { skillName: 'React', proficiencyLevel: 7, source: 'self-assessment' },
+      { skillName: 'TypeScript', proficiencyLevel: 6, source: 'github-analysis' }
+    ],
+    createdAt: '2024-01-01T00:00:00Z'
+  };
+
+  const currentUser = user || (process.env.NODE_ENV === 'development' ? mockUser : null);
+
+  if (!currentUser) {
     return null; // This should be handled by ProtectedRoute
   }
 
-  const username = user.username;
-  const targetRole = user.profile?.targetRole || 'frontend-developer';
-  const currentRole = user.profile?.currentRole;
+  const username = currentUser.username;
+  const targetRole = currentUser.profile?.targetRole || 'frontend-developer';
+  const currentRole = currentUser.profile?.currentRole;
 
   return (
     <main className="container mx-auto px-4 py-8 max-w-7xl" role="main">
@@ -34,16 +57,16 @@ export default function Dashboard() {
       <div className="mb-8 flex justify-between items-start">
         <div>
           <div className="flex items-center gap-4 mb-2">
-            {user.avatarUrl && (
+            {currentUser.avatarUrl && (
               <img 
-                src={user.avatarUrl} 
-                alt={user.name || user.username}
+                src={currentUser.avatarUrl} 
+                alt={currentUser.name || currentUser.username}
                 className="w-12 h-12 rounded-full"
               />
             )}
             <div>
               <h1 className="text-3xl font-bold">
-                Welcome back, {user.name || user.username}!
+                Welcome back, {currentUser.name || currentUser.username}!
               </h1>
               <p className={`text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
                 {currentRole && targetRole !== currentRole 
@@ -74,7 +97,7 @@ export default function Dashboard() {
       </div>
 
       {/* Profile Setup Reminder */}
-      {!user.profile?.targetRole && (
+      {!currentUser.profile?.targetRole && (
         <Card className="mb-6 border-yellow-200 bg-yellow-50">
           <CardHeader>
             <CardTitle className="text-yellow-800">Complete Your Profile</CardTitle>
@@ -113,7 +136,7 @@ export default function Dashboard() {
           <div data-testid="learning-roadmap-enhanced">
             <LearningRoadmapEnhanced 
               targetRole={targetRole}
-              currentSkills={user.skills?.map(s => s.skillName) || []}
+              currentSkills={currentUser.skills?.map(s => s.skillName) || []}
             />
           </div>
         </div>
@@ -123,7 +146,7 @@ export default function Dashboard() {
       <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold">{user.skills?.length || 0}</div>
+            <div className="text-2xl font-bold">{currentUser.skills?.length || 0}</div>
             <p className="text-sm text-gray-600">Skills Tracked</p>
           </CardContent>
         </Card>
@@ -131,7 +154,7 @@ export default function Dashboard() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold">
-              {user.profile?.careerGoals?.length || 0}
+              {currentUser.profile?.careerGoals?.length || 0}
             </div>
             <p className="text-sm text-gray-600">Career Goals</p>
           </CardContent>
@@ -140,7 +163,7 @@ export default function Dashboard() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-2xl font-bold">
-              {new Date(user.createdAt).toLocaleDateString()}
+              {new Date(currentUser.createdAt).toLocaleDateString()}
             </div>
             <p className="text-sm text-gray-600">Member Since</p>
           </CardContent>

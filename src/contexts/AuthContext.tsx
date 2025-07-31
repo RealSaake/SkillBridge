@@ -43,7 +43,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://skillbridge-production-ea3f.up.railway.app';
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -97,7 +97,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Fetch current user
   const fetchUser = useCallback(async (): Promise<User | null> => {
     try {
-      const response = await apiCall('/auth/me');
+      const response = await apiCall('/api/auth/me');
       
       if (response.ok) {
         const userData = await response.json();
@@ -107,7 +107,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const refreshSuccess = await refreshToken();
         if (refreshSuccess) {
           // Retry fetching user
-          const retryResponse = await apiCall('/auth/me');
+          const retryResponse = await apiCall('/api/auth/me');
           if (retryResponse.ok) {
             return await retryResponse.json();
           }
@@ -141,7 +141,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const refreshTokenValue = getRefreshToken();
       
       if (refreshTokenValue) {
-        await apiCall('/auth/logout', {
+        await apiCall('/api/auth/logout', {
           method: 'POST',
           body: JSON.stringify({ refreshToken: refreshTokenValue }),
         });
@@ -163,7 +163,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return false;
       }
 
-      const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+      const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

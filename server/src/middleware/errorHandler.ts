@@ -10,7 +10,7 @@ export const errorHandler = (
   err: AppError | ZodError,
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ) => {
   // Log error for debugging
   console.error('Error:', {

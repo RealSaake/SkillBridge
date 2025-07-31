@@ -382,7 +382,7 @@ DATABASE_URL="postgresql://postgres:password@localhost:5432/skillbridge_dev?sche
 NODE_ENV=production
 DATABASE_URL="your-production-database-url"
 JWT_SECRET="strong-production-secret"
-FRONTEND_URL="https://your-domain.com"
+FRONTEND_URL="https://skillbridgev1.vercel.app"
 ```
 
 ### **Database Migration**

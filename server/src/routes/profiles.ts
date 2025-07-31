@@ -19,7 +19,7 @@ const updateProfileSchema = z.object({
 });
 
 // Get user profile
-router.get('/', authenticateJWT, async (req, res, next) => {
+router.get('/', authenticateJWT, async (req, res, next): Promise<void> => {
   try {
     const user = req.user as any;
     
@@ -46,7 +46,7 @@ router.get('/', authenticateJWT, async (req, res, next) => {
 });
 
 // Update user profile
-router.patch('/', authenticateJWT, async (req, res, next) => {
+router.patch('/', authenticateJWT, async (req, res, next): Promise<void> => {
   try {
     const user = req.user as any;
     const updateData = updateProfileSchema.parse(req.body);
@@ -72,7 +72,7 @@ router.patch('/', authenticateJWT, async (req, res, next) => {
 });
 
 // Profile setup completion check
-router.get('/completion', authenticateJWT, async (req, res, next) => {
+router.get('/completion', authenticateJWT, async (req, res, next): Promise<void> => {
   try {
     const user = req.user as any;
     

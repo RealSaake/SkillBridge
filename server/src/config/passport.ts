@@ -10,7 +10,7 @@ export function setupPassport() {
     clientSecret: process.env.GITHUB_CLIENT_SECRET!,
     callbackURL: process.env.GITHUB_CALLBACK_URL || '/api/auth/github/callback'
   },
-  async (accessToken: string, refreshToken: string, profile: any, done: any) => {
+  async (_accessToken: string, _refreshToken: string, profile: any, done: any) => {
     try {
       // Check if user already exists
       let user = await prisma.user.findUnique({

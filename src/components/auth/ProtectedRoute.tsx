@@ -15,6 +15,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { user, loading } = useAuth();
   const location = useLocation();
 
+  // Development mode bypass
+  if (process.env.NODE_ENV === 'development' && location.pathname === '/dev') {
+    return <>{children}</>;
+  }
+
   // Show loading spinner while checking authentication
   if (loading) {
     return (

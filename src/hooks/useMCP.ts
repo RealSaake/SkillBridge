@@ -1,14 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
-import { 
-  GitHubRepo, 
-  GitHubProfile, 
-  GitHubActivityAnalysis, 
-  ResumeAnalysis, 
-  SkillGap, 
+import {
+  GitHubRepo,
+  GitHubProfile,
+  GitHubActivityAnalysis,
+  ResumeAnalysis,
+  SkillGap,
   CareerRoadmap,
   LearningRoadmap,
   MCPError
 } from '../types/mcp-types';
+import type { MCPServerConfig } from '../config/mcpConfig';
 
 // MCP Client Configuration
 const MCP_CONFIG = {
@@ -35,15 +36,6 @@ class MCPErrorHandler {
     const retryableCodes = ['TIMEOUT', 'NETWORK_ERROR', 'RATE_LIMIT'];
     return retryableCodes.includes(error.code);
   }
-}
-
-// MCP Server Configuration
-interface MCPServerConfig {
-  name: string;
-  command: string;
-  args: string[];
-  env?: Record<string, string>;
-  cwd?: string;
 }
 
 // MCP JSON-RPC Request/Response Types (commented out unused interfaces)
@@ -78,8 +70,27 @@ class MCPClient {
   }
 
   private initializeServers(): void {
-    // Configure MCP servers based on project structure
-    const serverConfigs: MCPServerConfig[] = [
+    // Import MCP configuration
+    import('../config/mcpConfig').then(({ getMCPConfig }) => {
+      const config = getMCPConfig();
+
+      config.servers.forEach(serverConfig => {
+        this.servers.set(serverConfig.name, serverConfig);
+      });
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🔧 MCP Client initialized with ${config.servers.length} servers (${config.transport} transport)`);
+      }
+    }).catch(error => {
+      console.error('Failed to load MCP configuration:', error);
+      // Fallback to basic configuration
+      this.initializeFallbackServers();
+    });
+  }
+
+  private initializeFallbackServers(): void {
+    // Fallback server configuration if config loading fails
+    const fallbackConfigs = [
       {
         name: 'portfolio-analyzer',
         command: 'npx',
@@ -106,7 +117,7 @@ class MCPClient {
       }
     ];
 
-    serverConfigs.forEach(config => {
+    fallbackConfigs.forEach(config => {
       this.servers.set(config.name, config);
     });
   }
@@ -124,13 +135,13 @@ class MCPClient {
   }
 
   private async callMCP<T>(
-    serverName: string, 
-    toolName: string, 
+    serverName: string,
+    toolName: string,
     params: Record<string, any>
   ): Promise<T> {
     // Generate cache key
     const cacheKey = this.generateCacheKey(serverName, toolName, params);
-    
+
     // Check cache first
     const cachedEntry = this.cache.get(cacheKey);
     if (cachedEntry && this.isValidCacheEntry(cachedEntry)) {
@@ -152,7 +163,7 @@ class MCPClient {
     if (process.env.NODE_ENV === 'development') {
       console.log(`🔌 MCP Call: ${serverName}.${toolName}`, params);
     }
-    
+
     const serverConfig = this.servers.get(serverName);
     if (!serverConfig) {
       throw new Error(`Unknown MCP server: ${serverName}`);
@@ -163,13 +174,13 @@ class MCPClient {
 
     // Create the request promise
     const requestPromise = this.executeMCPCall<T>(serverName, toolName, params);
-    
+
     // Store pending request for deduplication
     this.pendingRequests.set(cacheKey, requestPromise);
 
     try {
       const response = await requestPromise;
-      
+
       // Cache the successful response
       this.cache.set(cacheKey, {
         data: response,
@@ -219,290 +230,176 @@ class MCPClient {
     toolName: string,
     params: Record<string, any>
   ): Promise<T> {
-    // For now, we'll use the existing MCP servers via direct import
-    // In production, this would use stdio transport to communicate with MCP servers
-    const response = await this.callMCPServer<T>(serverName, toolName, params);
+    // Use the MCP protocol to communicate with servers
+    const response = await this.callMCPViaProtocol<T>(serverName, toolName, params);
     return response;
   }
 
-  private async callMCPServer<T>(
+  private async callMCPViaProtocol<T>(
     serverName: string,
     toolName: string,
     params: Record<string, any>
   ): Promise<T> {
-    // Import and call the actual MCP servers
-    // This is a temporary implementation - in production we'd use stdio transport
-    
-    switch (serverName) {
-      case 'portfolio-analyzer':
-        return await this.callPortfolioAnalyzer<T>(toolName, params);
-      case 'github-projects':
-        return await this.callGitHubProjects<T>(toolName, params);
-      case 'resume-tips':
-        return await this.callResumeTips<T>(toolName, params);
-      case 'roadmap-data':
-        return await this.callRoadmapData<T>(toolName, params);
-      default:
-        throw new Error(`Unsupported MCP server: ${serverName}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`🔌 MCP Protocol Call: ${serverName}.${toolName}`, params);
+    }
+
+    // Create MCP JSON-RPC request
+    const request = {
+      jsonrpc: '2.0' as const,
+      id: this.generateRequestId(),
+      method: 'tools/call',
+      params: {
+        name: toolName,
+        arguments: params
+      }
+    };
+
+    try {
+      // In a browser environment, we'll use the available MCP functions
+      // In production, this would use stdio transport or WebSocket connection
+      const response = await this.executeMCPRequest<T>(serverName, request);
+
+      if (response.error) {
+        throw new Error(`MCP Error: ${response.error.message}`);
+      }
+
+      return response.result as T;
+    } catch (error) {
+      console.error(`❌ MCP Protocol Error: ${serverName}.${toolName}`, error);
+      throw error;
     }
   }
 
-  private async callPortfolioAnalyzer<T>(toolName: string, params: Record<string, unknown>): Promise<T> {
-    // Import the actual MCP server functions
-    // For now, we'll simulate the real MCP server calls
-    
+  private async executeMCPRequest<T>(
+    serverName: string,
+    request: any
+  ): Promise<{ result?: T; error?: { code: number; message: string; data?: any } }> {
+    // For browser environment, we'll use the MCP functions available globally
+    // In production, this would be replaced with actual stdio/WebSocket transport
+
+    try {
+      // Check if MCP functions are available (injected by Kiro IDE)
+      const mcpFunctions = (window as any).mcpFunctions;
+
+      if (mcpFunctions && mcpFunctions[serverName]) {
+        const serverFunction = mcpFunctions[serverName][request.params.name];
+        if (serverFunction) {
+          const result = await serverFunction(request.params.arguments);
+          return { result };
+        }
+      }
+
+      // Fallback to direct MCP server calls for development
+      return await this.fallbackMCPCall<T>(serverName, request);
+    } catch (error) {
+      return {
+        error: {
+          code: -32603,
+          message: error instanceof Error ? error.message : 'Internal error',
+          data: error
+        }
+      };
+    }
+  }
+
+  private async fallbackMCPCall<T>(
+    serverName: string,
+    request: any
+  ): Promise<{ result?: T; error?: { code: number; message: string; data?: any } }> {
+    // Development fallback - call MCP servers directly
+    // This maintains compatibility while we transition to full stdio transport
+
+    const toolName = request.params.name;
+    const params = request.params.arguments;
+
+    try {
+      let result: T;
+
+      switch (serverName) {
+        case 'portfolio-analyzer':
+          result = await this.callPortfolioAnalyzerMCP<T>(toolName, params);
+          break;
+        case 'github-projects':
+          result = await this.callGitHubProjectsMCP<T>(toolName, params);
+          break;
+        case 'resume-tips':
+          result = await this.callResumeTipsMCP<T>(toolName, params);
+          break;
+        case 'roadmap-data':
+          result = await this.callRoadmapDataMCP<T>(toolName, params);
+          break;
+        default:
+          throw new Error(`Unknown MCP server: ${serverName}`);
+      }
+
+      return { result };
+    } catch (error) {
+      return {
+        error: {
+          code: -32603,
+          message: error instanceof Error ? error.message : 'Server error',
+          data: error
+        }
+      };
+    }
+  }
+
+  // MCP server implementations (these will be replaced with stdio transport)
+  private async callPortfolioAnalyzerMCP<T>(toolName: string, params: any): Promise<T> {
+    // Import and call the actual MCP server functions
+    const { mcp_portfolio_analyzer_analyze_github_activity, mcp_portfolio_analyzer_find_skill_gaps } = await import('../lib/mcpFunctions');
+
     switch (toolName) {
       case 'analyze_github_activity':
-        // This would normally call the real MCP server
-        // For now, we'll use the MCP server testing functions
-        return await this.testMCPCall('portfolio-analyzer', toolName, params);
+        return await mcp_portfolio_analyzer_analyze_github_activity(params) as T;
       case 'find_skill_gaps':
-        return await this.testMCPCall('portfolio-analyzer', toolName, params);
+        return await mcp_portfolio_analyzer_find_skill_gaps(params) as T;
       default:
         throw new Error(`Unknown tool: ${toolName} for portfolio-analyzer`);
     }
   }
 
-  private async callGitHubProjects<T>(toolName: string, params: Record<string, unknown>): Promise<T> {
+  private async callGitHubProjectsMCP<T>(toolName: string, params: any): Promise<T> {
+    const { mcp_github_projects_fetch_github_repos, mcp_github_projects_fetch_github_profile } = await import('../lib/mcpFunctions');
+
     switch (toolName) {
       case 'fetch_github_repos':
+        return await mcp_github_projects_fetch_github_repos(params) as T;
       case 'fetch_github_profile':
-        return await this.testMCPCall('github-projects', toolName, params);
+        return await mcp_github_projects_fetch_github_profile(params) as T;
       default:
         throw new Error(`Unknown tool: ${toolName} for github-projects`);
     }
   }
 
-  private async callResumeTips<T>(toolName: string, params: Record<string, unknown>): Promise<T> {
+  private async callResumeTipsMCP<T>(toolName: string, params: any): Promise<T> {
+    const { mcp_resume_tips_get_resume_tips, mcp_resume_tips_analyze_resume_section } = await import('../lib/mcpFunctions');
+
     switch (toolName) {
       case 'get_resume_tips':
+        return await mcp_resume_tips_get_resume_tips(params) as T;
       case 'analyze_resume_section':
-        return await this.testMCPCall('resume-tips', toolName, params);
+        return await mcp_resume_tips_analyze_resume_section(params) as T;
       default:
         throw new Error(`Unknown tool: ${toolName} for resume-tips`);
     }
   }
 
-  private async callRoadmapData<T>(toolName: string, params: Record<string, unknown>): Promise<T> {
+  private async callRoadmapDataMCP<T>(toolName: string, params: any): Promise<T> {
+    const { mcp_roadmap_data_get_career_roadmap, mcp_roadmap_data_get_learning_resources } = await import('../lib/mcpFunctions');
+
     switch (toolName) {
       case 'get_career_roadmap':
+        return await mcp_roadmap_data_get_career_roadmap(params) as T;
       case 'get_learning_resources':
-        return await this.testMCPCall('roadmap-data', toolName, params);
+        return await mcp_roadmap_data_get_learning_resources(params) as T;
       default:
         throw new Error(`Unknown tool: ${toolName} for roadmap-data`);
     }
   }
 
-  private async testMCPCall<T>(serverName: string, toolName: string, params: any): Promise<T> {
-    // Test the actual MCP servers by calling them directly
-    // This simulates what would happen with stdio transport
-    
-    console.log(`📡 Testing MCP Server: ${serverName}.${toolName}`);
-    
-    try {
-      // Simulate network delay for realistic testing
-      await new Promise(resolve => setTimeout(resolve, 200 + Math.random() * 800));
-      
-      // Call the actual MCP server testing endpoint
-      const testResponse = await this.callActualMCPServer(serverName, toolName, params);
-      return testResponse as T;
-    } catch (error) {
-      console.error(`❌ MCP Server Error: ${serverName}.${toolName}`, error);
-      throw error;
-    }
-  }
 
-  private async callActualMCPServer(serverName: string, toolName: string, params: any): Promise<any> {
-    // This would normally use stdio transport to communicate with MCP servers
-    // For now, we'll create a test harness that calls the MCP servers directly
-    
-    // const testRequest = {
-    //   jsonrpc: '2.0' as const,
-    //   id: this.generateRequestId(),
-    //   method: 'tools/call',
-    //   params: {
-    //     name: toolName,
-    //     arguments: params
-    //   }
-    // };
-
-    // Simulate calling the MCP server and getting a response
-    // In production, this would be replaced with actual MCP protocol communication
-    return await this.simulateRealMCPResponse(serverName, toolName, params);
-  }
-
-  private async simulateRealMCPResponse(serverName: string, toolName: string, params: any): Promise<any> {
-    // This simulates what the real MCP servers would return
-    // This will be replaced with actual MCP server calls in the next phase
-    
-    // For now, return realistic test data that matches our schemas
-    // This is temporary until we have full MCP stdio transport
-    
-    console.log(`🧪 Simulating real MCP response for ${serverName}.${toolName}`);
-    
-    // Return schema-compliant test data
-    return this.getSchemaCompliantTestData(serverName, toolName, params);
-  }
-
-  private getSchemaCompliantTestData(serverName: string, toolName: string, params: any): any {
-    // This returns test data that matches our TypeScript schemas exactly
-    // This ensures our components work with real data structures
-    
-    const testData: Record<string, Record<string, (params: any) => any>> = {
-      'portfolio-analyzer': {
-        'analyze_github_activity': (p) => ({
-          profile: {
-            name: `${p.username} Developer`,
-            followers: Math.floor(Math.random() * 500) + 50,
-            publicRepos: Math.floor(Math.random() * 50) + 10,
-            accountAge: Math.floor(Math.random() * 5) + 1
-          },
-          activity: {
-            totalStars: Math.floor(Math.random() * 1000) + 100,
-            recentlyActiveRepos: Math.floor(Math.random() * 10) + 3,
-            languages: ['JavaScript', 'TypeScript', 'Python', 'Go'].slice(0, Math.floor(Math.random() * 3) + 2),
-            frameworks: ['React', 'Node.js', 'Express', 'Next.js'].slice(0, Math.floor(Math.random() * 3) + 2),
-            commitFrequency: ['regular', 'sporadic', 'intensive'][Math.floor(Math.random() * 3)] as any,
-            contributionStreak: Math.floor(Math.random() * 100) + 10
-          },
-          insights: {
-            experienceLevel: ['Beginner', 'Intermediate', 'Advanced'][Math.floor(Math.random() * 3)] as any,
-            activityLevel: ['Low', 'Medium', 'High'][Math.floor(Math.random() * 3)] as any,
-            roleAlignment: Math.floor(Math.random() * 40) + 60 // 60-100%
-          }
-        }),
-        'find_skill_gaps': () => [
-          {
-            skill: 'React',
-            currentLevel: 75 + Math.floor(Math.random() * 20),
-            targetLevel: 90,
-            importance: 'high' as const,
-            category: 'Frontend Technologies',
-            trending: true,
-            description: 'Modern React with hooks and context',
-            learningResources: ['React Official Docs', 'React Patterns Course']
-          },
-          {
-            skill: 'TypeScript',
-            currentLevel: 60 + Math.floor(Math.random() * 25),
-            targetLevel: 85,
-            importance: 'high' as const,
-            category: 'Frontend Technologies',
-            trending: true,
-            description: 'Type-safe JavaScript development',
-            learningResources: ['TypeScript Handbook', 'TypeScript Deep Dive']
-          }
-        ]
-      },
-      'github-projects': {
-        'fetch_github_repos': (p) => [
-          {
-            id: 1,
-            name: `${p.username}-portfolio`,
-            full_name: `${p.username}/${p.username}-portfolio`,
-            description: 'Personal portfolio website',
-            language: 'TypeScript',
-            stargazers_count: Math.floor(Math.random() * 50),
-            forks_count: Math.floor(Math.random() * 10),
-            updated_at: new Date().toISOString(),
-            created_at: new Date(Date.now() - Math.random() * 31536000000).toISOString(),
-            fork: false,
-            private: false,
-            html_url: `https://github.com/${p.username}/${p.username}-portfolio`,
-            clone_url: `https://github.com/${p.username}/${p.username}-portfolio.git`,
-            topics: ['portfolio', 'react', 'typescript'],
-            license: { key: 'mit', name: 'MIT License' }
-          }
-        ],
-        'fetch_github_profile': (p) => ({
-          login: p.username,
-          id: Math.floor(Math.random() * 100000),
-          name: `${p.username} Developer`,
-          company: 'Tech Corp',
-          blog: `https://${p.username}.dev`,
-          location: 'San Francisco, CA',
-          email: null,
-          bio: 'Full-stack developer passionate about modern web technologies',
-          public_repos: Math.floor(Math.random() * 50) + 10,
-          public_gists: Math.floor(Math.random() * 20),
-          followers: Math.floor(Math.random() * 500) + 50,
-          following: Math.floor(Math.random() * 200) + 25,
-          created_at: new Date(Date.now() - Math.random() * 157680000000).toISOString(),
-          updated_at: new Date().toISOString()
-        })
-      },
-      'resume-tips': {
-        'get_resume_tips': () => ({
-          overall: Math.floor(Math.random() * 30) + 70, // 70-100
-          sections: [
-            { name: 'Contact Information', score: Math.floor(Math.random() * 20) + 80, status: 'good' as const },
-            { name: 'Professional Summary', score: Math.floor(Math.random() * 30) + 70, status: 'good' as const },
-            { name: 'Work Experience', score: Math.floor(Math.random() * 40) + 60, status: 'warning' as const },
-            { name: 'Skills', score: Math.floor(Math.random() * 50) + 50, status: 'warning' as const },
-            { name: 'Projects', score: Math.floor(Math.random() * 60) + 40, status: 'error' as const }
-          ],
-          suggestions: [
-            {
-              type: 'warning' as const,
-              title: 'Add Quantifiable Achievements',
-              description: 'Include specific metrics and numbers in your experience section.'
-            },
-            {
-              type: 'error' as const,
-              title: 'Expand Project Details',
-              description: 'Your projects section needs more technical details and impact metrics.'
-            }
-          ]
-        })
-      },
-      'roadmap-data': {
-        'get_career_roadmap': (p) => ({
-          title: `${p.role} Developer Learning Path`,
-          targetRole: p.role,
-          estimatedWeeks: Math.floor(Math.random() * 8) + 8, // 8-16 weeks
-          totalHours: Math.floor(Math.random() * 100) + 100, // 100-200 hours
-          hoursPerWeek: 15,
-          difficulty: ['Beginner', 'Intermediate', 'Advanced'][Math.floor(Math.random() * 3)] as any,
-          skillsFocus: ['React', 'TypeScript', 'Node.js', 'GraphQL', 'AWS'].slice(0, Math.floor(Math.random() * 3) + 3),
-          weeks: [
-            {
-              week: 1,
-              theme: 'Fundamentals',
-              description: 'Build a strong foundation in core technologies',
-              items: [
-                {
-                  id: '1',
-                  title: 'React Fundamentals',
-                  type: 'course' as const,
-                  provider: 'React.dev',
-                  duration: '6 hours',
-                  difficulty: 'beginner' as const,
-                  status: 'not-started' as const,
-                  progress: 0,
-                  skill: 'React',
-                  priority: 'high' as const,
-                  url: 'https://react.dev/learn',
-                  description: 'Learn React fundamentals with the official tutorial'
-                }
-              ]
-            }
-          ]
-        })
-      }
-    };
-
-    const serverData = testData[serverName];
-    if (!serverData) {
-      throw new Error(`No test data for server: ${serverName}`);
-    }
-
-    const toolData = serverData[toolName];
-    if (!toolData) {
-      throw new Error(`No test data for tool: ${toolName}`);
-    }
-
-    return toolData(params);
-  }
 
   private validateParams(serverName: string, toolName: string, params: any): void {
     // Enhanced parameter validation with detailed error messages
@@ -600,22 +497,22 @@ class MCPClient {
 
   async call<T>(serverName: string, toolName: string, params: Record<string, any>): Promise<T> {
     let lastError: MCPError | null = null;
-    
+
     for (let attempt = 1; attempt <= MCP_CONFIG.retries; attempt++) {
       try {
         return await this.callMCP<T>(serverName, toolName, params);
       } catch (error) {
         lastError = MCPErrorHandler.handle(error, serverName, toolName);
-        
+
         if (attempt === MCP_CONFIG.retries || !MCPErrorHandler.isRetryable(lastError)) {
           throw lastError;
         }
-        
+
         const delay = Math.pow(MCP_CONFIG.backoffMultiplier, attempt - 1) * 1000;
         await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
-    
+
     throw lastError;
   }
 }
@@ -629,10 +526,10 @@ function useMCP<T>(
   toolName: string,
   params: Record<string, any>,
   dependencies: any[] = []
-): { 
-  data: T | null; 
-  loading: boolean; 
-  error: MCPError | null; 
+): {
+  data: T | null;
+  loading: boolean;
+  error: MCPError | null;
   timestamp: string;
   refetch: () => Promise<void>;
 } {
@@ -644,10 +541,10 @@ function useMCP<T>(
     if (!params || Object.keys(params).some(key => params[key] === undefined)) {
       return;
     }
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       const result = await mcpClient.call<T>(serverName, toolName, params);
       setData(result);
@@ -658,19 +555,19 @@ function useMCP<T>(
     } finally {
       setLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [serverName, toolName, params, ...dependencies]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  return { 
-    data, 
-    loading, 
-    error, 
+  return {
+    data,
+    loading,
+    error,
     timestamp: new Date().toISOString(),
-    refetch: fetchData 
+    refetch: fetchData
   };
 }
 

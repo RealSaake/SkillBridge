@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/RealSaake/SkillBridge.git"
   },
-  "homepage": "https://github.com/RealSaake/SkillBridge",
+  "homepage": ".",
   "bugs": {
     "url": "https://github.com/RealSaake/SkillBridge/issues"
   },
@@ -63,11 +63,13 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "build:mcp": "./scripts/build-mcp-servers.sh",
+    "build:production": "npm run build:mcp && npm run build",
     "test": "react-scripts test",
     "test:integration": "./scripts/run-final-integration-test.sh",
     "test:final": "npm test -- --testPathPattern=final-sprint2-integration --verbose --watchAll=false",
     "production:check": "./scripts/production-readiness-check.sh",
-    "production:build": "npm run build && npm run production:check",
+    "production:build": "npm run build:production && npm run production:check",
     "eject": "react-scripts eject",
     "mock-debt:check": "./scripts/detect-mock-usage.sh",
     "mock-debt:report": "echo '📊 Mock Debt Status: Production code is mock-free! ✅'",

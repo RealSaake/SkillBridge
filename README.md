@@ -6,8 +6,7 @@ SkillBridge is an AI-powered career development platform that provides personali
 
 ### Prerequisites
 - Node.js 18+
-- PostgreSQL 14+
-- GitHub OAuth App
+- GitHub OAuth App (✅ Already configured)
 
 ### Installation
 
@@ -22,23 +21,37 @@ npm install
 ```bash
 cd server
 npm install
-./setup.sh
 ```
 
-3. **Configure environment:**
-   - Update `server/.env` with your database and GitHub OAuth credentials
-   - Update `.env` with your API URL
+3. **Configure environment variables:**
+   
+   Update `server/.env` with your production domains:
+   ```bash
+   GITHUB_CLIENT_ID=your_github_client_id
+   GITHUB_CLIENT_SECRET=your_github_client_secret
+   FRONTEND_URL=https://skillbridgev1.vercel.app
+   API_URL=https://skillbridge-production-ea3f.up.railway.app
+   NODE_ENV=production
+   ```
 
-4. **Start the application:**
+   Update `.env` in root:
+   ```bash
+   REACT_APP_API_URL=https://skillbridge-production-ea3f.up.railway.app
+   ```
+
+4. **Deploy to production:**
 ```bash
-# Terminal 1: Backend
-cd server && npm run dev
+# Build for production
+npm run build:production
 
-# Terminal 2: Frontend  
-npm start
+# Deploy backend to Railway
+cd server && railway up
+
+# Deploy frontend to Vercel  
+vercel --prod
 ```
 
-Visit http://localhost:3000 to access the application.
+Visit your Vercel domain to access the live application.
 
 ## 🏗️ Architecture
 
@@ -50,9 +63,9 @@ Visit http://localhost:3000 to access the application.
 
 ### Backend
 - **Express.js** API with comprehensive security
-- **PostgreSQL** database with Prisma ORM
-- **JWT Authentication** with refresh tokens
-- **21 API endpoints** for complete functionality
+- **GitHub OAuth** authentication with JWT tokens
+- **RESTful API** with rate limiting and CORS protection
+- **MCP Integration** for AI-powered career guidance
 
 ### Key Features
 - **GitHub Analysis**: Real-time portfolio analysis
@@ -76,8 +89,7 @@ npm run lint       # Run linter
 cd server
 npm run dev        # Start development server
 npm run build      # Build TypeScript
-npm run db:studio  # Open database GUI
-npm run db:migrate # Run database migrations
+npm start          # Start production server
 ```
 
 ## 📁 Project Structure
@@ -101,23 +113,21 @@ npm run db:migrate # Run database migrations
 
 ## 🔐 Security
 
-- **OWASP Compliant**: Security best practices implemented
-- **JWT Authentication**: Secure token-based auth
-- **Rate Limiting**: Protection against abuse
-- **Input Validation**: Comprehensive data sanitization
+- **GitHub OAuth**: Secure authentication via GitHub
+- **JWT Tokens**: Access and refresh token management
+- **Rate Limiting**: Protection against abuse (100 req/15min)
+- **Helmet.js**: Security headers and protection
 - **CORS Protection**: Secure cross-origin requests
 
 ## 🧪 Testing
 
-Run the complete test suite:
+The application includes comprehensive testing:
 ```bash
-npm test
+npm test           # Frontend tests
+cd server && npm test  # Backend tests (when implemented)
 ```
 
-Backend testing:
-```bash
-cd server && npm test
-```
+Current test coverage focuses on component functionality and MCP integration.
 
 ## 📊 Performance
 
@@ -129,13 +139,19 @@ cd server && npm test
 ## 🚀 Deployment
 
 The application is production-ready with:
-- Environment configuration templates
-- Database migration scripts
-- Security hardening
-- Performance optimization
-- Complete documentation
+- GitHub OAuth integration
+- Environment configuration
+- Security middleware (Helmet, CORS, Rate limiting)
+- MCP server integration
+- Responsive React frontend
 
-See `docs/sprint-summaries/SPRINT-3-SETUP-GUIDE.md` for detailed deployment instructions.
+### Environment Variables Required:
+- `GITHUB_CLIENT_ID` - Your GitHub OAuth app client ID
+- `GITHUB_CLIENT_SECRET` - Your GitHub OAuth app client secret
+- `FRONTEND_URL` - Frontend URL (for OAuth redirects)
+- `REACT_APP_API_URL` - Backend API URL
+
+See deployment scripts in `/scripts` directory for production setup.
 
 ---
 

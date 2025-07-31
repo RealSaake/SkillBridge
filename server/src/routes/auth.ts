@@ -42,7 +42,7 @@ router.get('/github',
 // GitHub OAuth callback
 router.get('/github/callback',
   passport.authenticate('github', { session: false }),
-  async (req, res) => {
+  async (req, res): Promise<void> => {
     try {
       const user = req.user as any;
       
@@ -82,7 +82,7 @@ const refreshTokenSchema = z.object({
   refreshToken: z.string()
 });
 
-router.post('/refresh', async (req, res) => {
+router.post('/refresh', async (req, res): Promise<void> => {
   try {
     const { refreshToken } = refreshTokenSchema.parse(req.body);
 
@@ -133,7 +133,7 @@ router.post('/refresh', async (req, res) => {
 });
 
 // Get current user
-router.get('/me', authenticateJWT, async (req, res) => {
+router.get('/me', authenticateJWT, async (req, res): Promise<void> => {
   try {
     const user = req.user as any;
     
@@ -168,7 +168,7 @@ router.get('/me', authenticateJWT, async (req, res) => {
 });
 
 // Logout (invalidate refresh token)
-router.post('/logout', authenticateJWT, async (req, res) => {
+router.post('/logout', authenticateJWT, async (req, res): Promise<void> => {
   try {
     const user = req.user as any;
     const refreshToken = req.body.refreshToken;

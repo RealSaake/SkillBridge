@@ -15,7 +15,7 @@ const widgetConfigSchema = z.object({
 });
 
 // Get dashboard configuration
-router.get('/widgets', authenticateJWT, async (req, res, next) => {
+router.get('/widgets', authenticateJWT, async (req, res, next): Promise<void> => {
   try {
     const user = req.user as any;
 
@@ -54,7 +54,7 @@ router.get('/widgets', authenticateJWT, async (req, res, next) => {
 });
 
 // Update widget configuration
-router.patch('/widgets/:widgetId', authenticateJWT, async (req, res, next) => {
+router.patch('/widgets/:widgetId', authenticateJWT, async (req, res, next): Promise<void> => {
   try {
     const user = req.user as any;
     const { widgetId } = req.params;
@@ -94,7 +94,7 @@ const bulkUpdateSchema = z.object({
   }))
 });
 
-router.patch('/widgets/bulk', authenticateJWT, async (req, res, next) => {
+router.patch('/widgets/bulk', authenticateJWT, async (req, res, next): Promise<void> => {
   try {
     const user = req.user as any;
     const { widgets } = bulkUpdateSchema.parse(req.body);
@@ -131,7 +131,7 @@ router.patch('/widgets/bulk', authenticateJWT, async (req, res, next) => {
 });
 
 // Get dashboard summary data
-router.get('/summary', authenticateJWT, async (req, res, next) => {
+router.get('/summary', authenticateJWT, async (req, res, next): Promise<void> => {
   try {
     const user = req.user as any;
 

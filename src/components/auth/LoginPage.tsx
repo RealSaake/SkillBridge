@@ -2,11 +2,11 @@ import React from 'react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://skillbridge-production-ea3f.up.railway.app';
 
 export const LoginPage: React.FC = () => {
   const handleGitHubLogin = () => {
-    window.location.href = `${API_BASE_URL}/auth/github`;
+    window.location.href = `${API_BASE_URL}/api/auth/github`;
   };
 
   return (

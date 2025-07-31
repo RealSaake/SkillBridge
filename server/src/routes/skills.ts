@@ -40,7 +40,7 @@ router.get('/', authenticateJWT, async (req, res, next) => {
     });
 
     res.json(skills);
-  } catch (error) {
+  } catch (error: any) {
     next(error);
   }
 });
@@ -60,7 +60,7 @@ router.post('/', authenticateJWT, async (req, res, next) => {
     });
 
     res.status(201).json(skill);
-  } catch (error) {
+  } catch (error: any) {
     if (error.code === 'P2002') {
       return next(createError('Skill already exists for this user', 409));
     }
@@ -96,7 +96,7 @@ router.patch('/:skillId', authenticateJWT, async (req, res, next) => {
     });
 
     res.json(updatedSkill);
-  } catch (error) {
+  } catch (error: any) {
     next(error);
   }
 });
@@ -123,7 +123,7 @@ router.delete('/:skillId', authenticateJWT, async (req, res, next) => {
     });
 
     res.json({ message: 'Skill deleted successfully' });
-  } catch (error) {
+  } catch (error: any) {
     next(error);
   }
 });
@@ -163,7 +163,7 @@ router.post('/bulk', authenticateJWT, async (req, res, next) => {
       message: `Successfully processed ${results.length} skills`,
       skills: results
     });
-  } catch (error) {
+  } catch (error: any) {
     next(error);
   }
 });
@@ -199,7 +199,7 @@ router.get('/stats', authenticateJWT, async (req, res, next) => {
       statsBySource: stats,
       topSkills
     });
-  } catch (error) {
+  } catch (error: any) {
     next(error);
   }
 });

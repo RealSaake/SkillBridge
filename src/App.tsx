@@ -6,6 +6,7 @@ import { LoginPage } from './components/auth/LoginPage';
 import { AuthCallback } from './components/auth/AuthCallback';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { ProfileSetup } from './components/auth/ProfileSetup';
+import { DevLanding } from './components/DevLanding';
 import Dashboard from './components/Dashboard';
 
 interface ThemeContextType {
@@ -72,6 +73,10 @@ function App() {
                     </ProtectedRoute>
                   } 
                 />
+                
+                {/* Development routes - bypass auth */}
+                <Route path="/dev" element={<DevLanding />} />
+                <Route path="/dev-dashboard" element={<Dashboard />} />
                 
                 {/* Default redirect */}
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
