@@ -10,6 +10,32 @@
       content="SkillBridge - AI-powered career development platform"
     />
     <title>SkillBridge</title>
+    <script>
+      console.log('🏁 HTML loaded, timestamp:', new Date().toISOString());
+      console.log('🌐 Current URL:', window.location.href);
+      console.log('📱 User Agent:', navigator.userAgent);
+      
+      // Log when scripts start loading
+      window.addEventListener('beforeunload', function() {
+        console.log('🔄 Page unloading...');
+      });
+      
+      // Catch any global errors
+      window.addEventListener('error', function(e) {
+        console.error('🚨 Global Error:', {
+          message: e.message,
+          filename: e.filename,
+          lineno: e.lineno,
+          colno: e.colno,
+          error: e.error
+        });
+      });
+      
+      // Catch unhandled promise rejections
+      window.addEventListener('unhandledrejection', function(e) {
+        console.error('🚨 Unhandled Promise Rejection:', e.reason);
+      });
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

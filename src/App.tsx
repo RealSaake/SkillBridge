@@ -8,6 +8,7 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { ProfileSetup } from './components/auth/ProfileSetup';
 import { DevLanding } from './components/DevLanding';
 import Dashboard from './components/Dashboard';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 interface ThemeContextType {
   theme: 'light' | 'dark';
@@ -35,6 +36,14 @@ const queryClient = new QueryClient({
 });
 
 function App() {
+  console.log('🚀 App Component Loading...');
+  console.log('🌐 Window location:', window.location.href);
+  console.log('📦 Environment:', {
+    NODE_ENV: process.env.NODE_ENV,
+    REACT_APP_API_URL: process.env.REACT_APP_API_URL,
+    REACT_APP_ENVIRONMENT: process.env.REACT_APP_ENVIRONMENT
+  });
+  
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   const toggleTheme = () => {
@@ -42,9 +51,10 @@ function App() {
   };
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeContext.Provider value={{ theme, toggleTheme }}>
-        <AuthProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeContext.Provider value={{ theme, toggleTheme }}>
+          <AuthProvider>
           <Router>
             <div className={`min-h-screen transition-colors duration-300 ${
               theme === 'dark' 
@@ -89,6 +99,7 @@ function App() {
         </AuthProvider>
       </ThemeContext.Provider>
     </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

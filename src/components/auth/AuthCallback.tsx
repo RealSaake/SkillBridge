@@ -12,6 +12,14 @@ export const AuthCallback: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string>('');
 
   useEffect(() => {
+    console.log('🚀 AuthCallback Component Mounted');
+    console.log('📍 Current URL:', window.location.href);
+    console.log('🔧 Environment Variables:', {
+      apiUrl: process.env.REACT_APP_API_URL,
+      environment: process.env.REACT_APP_ENVIRONMENT,
+      nodeEnv: process.env.NODE_ENV
+    });
+    
     const handleCallback = async () => {
       try {
         const token = searchParams.get('token');
@@ -24,7 +32,8 @@ export const AuthCallback: React.FC = () => {
           refreshToken: refreshToken ? `${refreshToken.substring(0, 20)}...` : null,
           error,
           demo,
-          currentUrl: window.location.href
+          currentUrl: window.location.href,
+          searchParams: Object.fromEntries(searchParams.entries())
         });
 
         if (error) {
@@ -53,16 +62,25 @@ export const AuthCallback: React.FC = () => {
         }
 
         // Login with tokens
+        console.log('🔑 Attempting login with tokens...');
         await login(token, refreshToken);
+        console.log('✅ Login successful!');
         setStatus('success');
         
         // Redirect to dashboard after a brief success message
+        console.log('🔄 Redirecting to dashboard in 1.5s...');
         setTimeout(() => {
+          console.log('🏠 Navigating to dashboard...');
           navigate('/dashboard', { replace: true });
         }, 1500);
 
       } catch (error) {
-        console.error('Authentication callback error:', error);
+        console.error('❌ Authentication callback error:', error);
+        console.error('❌ Error details:', {
+          message: error.message,
+          stack: error.stack,
+          name: error.name
+        });
         setStatus('error');
         setErrorMessage('Failed to complete authentication');
       }
