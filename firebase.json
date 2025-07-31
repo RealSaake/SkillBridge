@@ -1,0 +1,44 @@
+{
+    "functions": [
+        {
+            "source": "functions",
+            "codebase": "default",
+            "ignore": [
+                "node_modules",
+                ".git",
+                "firebase-debug.log",
+                "firebase-debug.*.log"
+            ]
+        }
+    ],
+    "hosting": {
+        "public": "public",
+        "ignore": [
+            "firebase.json",
+            "**/.*",
+            "**/node_modules/**"
+        ],
+        "rewrites": [
+            {
+                "source": "/api/auth/github",
+                "function": "githubAuth"
+            },
+            {
+                "source": "/api/auth/github/callback",
+                "function": "githubCallback"
+            },
+            {
+                "source": "/health",
+                "function": "health"
+            },
+            {
+                "source": "/api",
+                "function": "api"
+            },
+            {
+                "source": "**",
+                "destination": "/index.html"
+            }
+        ]
+    }
+}

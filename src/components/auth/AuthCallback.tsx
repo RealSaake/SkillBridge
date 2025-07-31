@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { DebugInfo } from '../debug/DebugInfo';
 
 export const AuthCallback: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -17,6 +18,14 @@ export const AuthCallback: React.FC = () => {
         const refreshToken = searchParams.get('refresh');
         const error = searchParams.get('error');
         const demo = searchParams.get('demo');
+
+        console.log('🔐 AuthCallback Debug:', {
+          token: token ? `${token.substring(0, 20)}...` : null,
+          refreshToken: refreshToken ? `${refreshToken.substring(0, 20)}...` : null,
+          error,
+          demo,
+          currentUrl: window.location.href
+        });
 
         if (error) {
           setStatus('error');
@@ -138,6 +147,7 @@ export const AuthCallback: React.FC = () => {
           )}
         </CardContent>
       </Card>
+      {process.env.NODE_ENV === 'development' && <DebugInfo />}
     </div>
   );
 };
