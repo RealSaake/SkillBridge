@@ -77,9 +77,9 @@ export const AuthCallback: React.FC = () => {
       } catch (error) {
         console.error('❌ Authentication callback error:', error);
         console.error('❌ Error details:', {
-          message: error.message,
-          stack: error.stack,
-          name: error.name
+          message: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+          name: error instanceof Error ? error.name : typeof error
         });
         setStatus('error');
         setErrorMessage('Failed to complete authentication');
