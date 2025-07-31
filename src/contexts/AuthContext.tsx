@@ -97,7 +97,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Fetch current user
   const fetchUser = useCallback(async (): Promise<User | null> => {
     try {
-      const response = await apiCall('/api/auth/me');
+      const response = await apiCall('/auth/me');
       
       if (response.ok) {
         const userData = await response.json();
@@ -107,7 +107,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const refreshSuccess = await refreshToken();
         if (refreshSuccess) {
           // Retry fetching user
-          const retryResponse = await apiCall('/api/auth/me');
+          const retryResponse = await apiCall('/auth/me');
           if (retryResponse.ok) {
             return await retryResponse.json();
           }

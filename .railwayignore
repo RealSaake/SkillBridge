@@ -1,0 +1,38 @@
+# Frontend files (not needed for backend deployment)
+src/
+public/
+build/
+
+# Development files
+*.md
+docs/
+.kiro/
+
+# Test files
+**/*.test.*
+**/*.spec.*
+
+# Local environment files
+.env.local
+.env.development
+
+# IDE files
+.vscode/
+.idea/
+
+# Logs
+logs/
+*.log
+
+# Dependencies that will be installed
+node_modules/
+
+# Build artifacts (will be rebuilt)
+dist/
+build/
+
+# Keep only what's needed for server
+!server/
+!nixpacks.toml
+!railway.json
+!package.json
