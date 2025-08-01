@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { BookOpen, Clock, CheckCircle, PlayCircle, ChevronDown, ChevronUp, ExternalLink, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -28,7 +28,8 @@ interface RoadmapWeek {
 export function LearningRoadmap() {
   const [isExpanded, setIsExpanded] = useState(true);
   const [selectedWeek, setSelectedWeek] = useState(1);
-  const { user } = useAuth();
+  const [updatingProgress, setUpdatingProgress] = useState<string | null>(null);
+  const { user, profile, updateProgress } = useAuth();
 
   // Live MCP integration for learning roadmap
   const { 
@@ -37,12 +38,44 @@ export function LearningRoadmap() {
     error: roadmapError,
     refetch: refetchRoadmap 
   } = usePersonalizedLearningRoadmap(
-    user?.profile?.targetRole || 'fullstack-developer',
-    user?.profile?.techStack || []
+    profile?.targetRole || 'fullstack-developer',
+    profile?.techStack || []
   );
 
-  // Parse MCP response or use fallback data
-  const roadmap: RoadmapWeek[] = roadmapData?.weeks || [
+  // Handle progress updates
+  const handleProgressUpdate = useCallback(async (itemId: string, newStatus: 'not-started' | 'in-progress' | 'completed') => {
+    if (!profile) return;
+    
+    setUpdatingProgress(itemId);
+    try {
+      // Get current completed steps for the roadmap
+      const roadmapId = `${profile.targetRole}-roadmap`;
+      const currentProgress = profile.roadmapProgress?.[roadmapId]?.completedSteps || [];
+      
+      let updatedSteps: string[];
+      if (newStatus === 'completed' && !currentProgress.includes(itemId)) {
+        updatedSteps = [...currentProgress, itemId];
+      } else if (newStatus !== 'completed' && currentProgress.includes(itemId)) {
+        updatedSteps = currentProgress.filter(step => step !== itemId);
+      } else {
+        updatedSteps = currentProgress;
+      }
+      
+      await updateProgress(roadmapId, updatedSteps);
+      console.log('✅ Progress updated successfully');
+    } catch (error) {
+      console.error('❌ Failed to update progress:', error);
+    } finally {
+      setUpdatingProgress(null);
+    }
+  }, [profile, updateProgress]);
+
+  // Get completed steps from profile
+  const roadmapId = `${profile?.targetRole || 'fullstack-developer'}-roadmap`;
+  const completedSteps = profile?.roadmapProgress?.[roadmapId]?.completedSteps || [];
+
+  // Parse MCP response or use fallback data with progress from profile
+  const roadmap: RoadmapWeek[] = (roadmapData?.weeks || [
     {
       week: 1,
       theme: "Docker Fundamentals",
@@ -163,7 +196,13 @@ export function LearningRoadmap() {
         }
       ]
     }
-  ];
+  ]).map((week: RoadmapWeek) => ({
+    ...week,
+    items: week.items.map((item: LearningItem) => ({
+      ...item,
+      status: completedSteps.includes(item.id) ? 'completed' as const : item.status
+    }))
+  }));
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -389,19 +428,50 @@ export function LearningRoadmap() {
                       </span>
                       <div className="flex space-x-2">
                         {item.status === 'not-started' && (
-                          <Button size="sm" variant="outline">
-                            Start
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleProgressUpdate(item.id, 'in-progress')}
+                            disabled={updatingProgress === item.id}
+                          >
+                            {updatingProgress === item.id ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Start'}
                           </Button>
                         )}
                         {item.status === 'in-progress' && (
-                          <Button size="sm" variant="outline">
-                            Continue
-                          </Button>
+                          <>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => handleProgressUpdate(item.id, 'completed')}
+                              disabled={updatingProgress === item.id}
+                            >
+                              {updatingProgress === item.id ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Complete'}
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="ghost"
+                              onClick={() => handleProgressUpdate(item.id, 'not-started')}
+                              disabled={updatingProgress === item.id}
+                            >
+                              Reset
+                            </Button>
+                          </>
                         )}
                         {item.status === 'completed' && (
-                          <Button size="sm" variant="outline">
-                            Review
-                          </Button>
+                          <>
+                            <Button size="sm" variant="outline" disabled>
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Completed
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="ghost"
+                              onClick={() => handleProgressUpdate(item.id, 'not-started')}
+                              disabled={updatingProgress === item.id}
+                            >
+                              Reset
+                            </Button>
+                          </>
                         )}
                       </div>
                     </div>

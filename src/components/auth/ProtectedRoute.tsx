@@ -12,7 +12,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children, 
   requireProfile = false 
 }) => {
-  const { user, loading } = useAuth();
+  const { user, profile, isLoading, hasCompletedOnboarding } = useAuth();
   const location = useLocation();
 
   // Development mode bypass
@@ -21,7 +21,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // Show loading spinner while checking authentication
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <Card className="w-full max-w-md">
@@ -39,9 +39,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Redirect to profile setup if profile is required but not complete
-  if (requireProfile && (!user.profile || !user.profile.targetRole)) {
-    return <Navigate to="/profile/setup" replace />;
+  // Redirect to onboarding if profile is required but not complete
+  if (requireProfile && !hasCompletedOnboarding) {
+    return <Navigate to="/onboarding" replace />;
   }
 
   return <>{children}</>;

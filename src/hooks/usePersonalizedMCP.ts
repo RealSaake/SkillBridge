@@ -17,12 +17,17 @@ interface MCPResponse<T = any> {
 // Simple cache implementation
 const mcpCache = new Map<string, { data: any; timestamp: number; duration: number }>();
 
+// Circuit breaker to prevent infinite retries
+const failureTracker = new Map<string, { failures: number; lastFailure: number }>();
+const MAX_FAILURES = 3;
+const FAILURE_RESET_TIME = 5 * 60 * 1000; // 5 minutes
+
 export function usePersonalizedMCP<T = any>(
   mcpFunction: Function,
   params: any[] = [],
   options: MCPCallOptions = {}
 ): MCPResponse<T> {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -64,6 +69,27 @@ export function usePersonalizedMCP<T = any>(
       return;
     }
 
+    // Circuit breaker: check if we've failed too many times recently
+    const failures = failureTracker.get(key);
+    if (failures && failures.failures >= MAX_FAILURES) {
+      const timeSinceLastFailure = Date.now() - failures.lastFailure;
+      if (timeSinceLastFailure < FAILURE_RESET_TIME) {
+        const fallbackData = {
+          success: false,
+          data: null,
+          error: 'Service temporarily unavailable. Please try again later.',
+          fallback: true,
+          circuitBreakerActive: true
+        };
+        setData(fallbackData as T);
+        setError('Service temporarily unavailable');
+        return;
+      } else {
+        // Reset failure count after timeout
+        failureTracker.delete(key);
+      }
+    }
+
     setLoading(true);
     setError(null);
 
@@ -75,14 +101,14 @@ export function usePersonalizedMCP<T = any>(
         const userContext = {
           userId: user.id,
           username: user.username,
-          currentRole: user.profile?.currentRole,
-          targetRole: user.profile?.targetRole,
-          experienceLevel: user.profile?.experienceLevel,
-          careerGoals: user.profile?.careerGoals || [],
-          skills: user.skills?.map(skill => ({
-            name: skill.skillName,
-            proficiency: skill.proficiencyLevel,
-            source: skill.source
+          currentRole: profile?.currentRole,
+          targetRole: profile?.targetRole,
+          experienceLevel: profile?.experienceLevel,
+          careerGoals: profile?.careerGoal ? [profile.careerGoal] : [],
+          skills: profile?.techStack?.map(skill => ({
+            name: skill,
+            proficiency: 'intermediate', // Default proficiency
+            source: 'profile'
           })) || []
         };
 
@@ -92,12 +118,35 @@ export function usePersonalizedMCP<T = any>(
 
       const result = await mcpFunction(...enhancedParams);
       
+      // Reset failure count on success
+      failureTracker.delete(key);
+      
       setData(result);
       setCache(key, result);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      
+      // Track failures for circuit breaker
+      const currentFailures = failureTracker.get(key) || { failures: 0, lastFailure: 0 };
+      failureTracker.set(key, {
+        failures: currentFailures.failures + 1,
+        lastFailure: Date.now()
+      });
+      
       setError(errorMessage);
       console.error('MCP call error:', err);
+      
+      // Set fallback data to prevent infinite retries
+      const fallbackData = {
+        success: false,
+        data: null,
+        error: errorMessage,
+        fallback: true
+      };
+      setData(fallbackData as T);
+      
+      // Cache the error to prevent repeated failed requests (shorter duration)
+      setCache(key, fallbackData);
     } finally {
       setLoading(false);
     }
@@ -124,14 +173,14 @@ export function usePersonalizedMCP<T = any>(
 
 // Specialized hooks for common MCP operations
 export function usePersonalizedGitHubAnalysis(username: string) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   
   return usePersonalizedMCP(
     // This would be our enhanced MCP function that considers user context
     async (username: string, userContext?: any) => {
       // For now, we'll use the existing MCP function
       // In a real implementation, this would be enhanced to consider user context
-      const response = await fetch('/api/mcp/github-analysis', {
+      const response = await fetch('https://us-central1-skillbridge-career-dev.cloudfunctions.net/mcpGithubAnalysis', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -155,11 +204,11 @@ export function usePersonalizedGitHubAnalysis(username: string) {
 }
 
 export function usePersonalizedSkillGapAnalysis(username: string, targetRole: string) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   
   return usePersonalizedMCP(
     async (username: string, targetRole: string, userContext?: any) => {
-      const response = await fetch('/api/mcp/skill-gap-analysis', {
+      const response = await fetch('https://us-central1-skillbridge-career-dev.cloudfunctions.net/mcpSkillGapAnalysis', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -183,11 +232,11 @@ export function usePersonalizedSkillGapAnalysis(username: string, targetRole: st
 }
 
 export function usePersonalizedLearningRoadmap(targetRole: string, currentSkills: string[] = []) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   
   return usePersonalizedMCP(
     async (targetRole: string, currentSkills: string[], userContext?: any) => {
-      const response = await fetch('/api/mcp/learning-roadmap', {
+      const response = await fetch('https://us-central1-skillbridge-career-dev.cloudfunctions.net/mcpLearningRoadmap', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -211,11 +260,11 @@ export function usePersonalizedLearningRoadmap(targetRole: string, currentSkills
 }
 
 export function usePersonalizedResumeAnalysis(resumeContent?: string) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   
   return usePersonalizedMCP(
     async (resumeContent: string, userContext?: any) => {
-      const response = await fetch('/api/mcp/resume-analysis', {
+      const response = await fetch('https://us-central1-skillbridge-career-dev.cloudfunctions.net/mcpResumeAnalysis', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -242,7 +291,8 @@ export function usePersonalizedResumeAnalysis(resumeContent?: string) {
 // Clear all MCP cache (useful for logout or profile changes)
 export function clearMCPCache() {
   mcpCache.clear();
-  console.log('MCP cache cleared');
+  failureTracker.clear();
+  console.log('MCP cache and failure tracker cleared');
 }
 
 // Export the existing hooks without duplication - they already use real MCP calls

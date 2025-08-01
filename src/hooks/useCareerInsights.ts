@@ -26,13 +26,13 @@ export const useCareerInsights = ({
   githubUsername, 
   autoFetch = false 
 }: UseCareerInsightsProps = {}) => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [insights, setInsights] = useState<CareerInsight[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchInsights = async () => {
-    if (!targetRole && !user?.profile?.targetRole) {
+    if (!targetRole && !profile?.targetRole) {
       setError('Target role is required for insights');
       return;
     }
@@ -41,7 +41,7 @@ export const useCareerInsights = ({
     setError(null);
 
     try {
-      const role = targetRole || user?.profile?.targetRole;
+      const role = targetRole || profile?.targetRole;
       const username = githubUsername || user?.username;
 
       logInfo('Fetching career insights', {
@@ -134,7 +134,7 @@ export const useCareerInsights = ({
       
       logError('Error fetching career insights', err as Error, {
         userId: user?.id,
-        targetRole: targetRole || user?.profile?.targetRole
+        targetRole: targetRole || profile?.targetRole
       }, 'useCareerInsights');
     } finally {
       setLoading(false);
@@ -239,10 +239,10 @@ export const useCareerInsights = ({
   };
 
   useEffect(() => {
-    if (autoFetch && (targetRole || user?.profile?.targetRole)) {
+    if (autoFetch && (targetRole || profile?.targetRole)) {
       fetchInsights();
     }
-  }, [autoFetch, targetRole, user?.profile?.targetRole, user?.username]);
+  }, [autoFetch, targetRole, profile?.targetRole, user?.username]);
 
   return {
     insights,

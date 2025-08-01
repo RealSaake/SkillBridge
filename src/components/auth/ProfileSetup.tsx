@@ -18,7 +18,7 @@ interface ProfileData {
 }
 
 export const ProfileSetup: React.FC = () => {
-  const { user, updateUser } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
@@ -73,7 +73,7 @@ export const ProfileSetup: React.FC = () => {
 
       if (response.ok) {
         const updatedProfile = await response.json();
-        updateUser({ profile: updatedProfile });
+        console.log('Profile updated successfully:', updatedProfile);
         navigate('/dashboard');
       } else {
         throw new Error('Failed to update profile');

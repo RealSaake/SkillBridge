@@ -81,8 +81,43 @@ function App() {
       referrer: document.referrer
     }, 'App');
 
-    // Log any unhandled errors
+    // Log any unhandled errors (but throttle MCP errors)
+    let mcpErrorCount = 0;
+    const mcpErrorThreshold = 5;
+    const mcpErrorResetTime = 60000; // 1 minute
+    let lastMcpErrorReset = Date.now();
+
     const handleUnhandledError = (event: ErrorEvent) => {
+      // Check if this is an MCP-related error
+      const isMcpError = event.message?.includes('MCP') || 
+                        event.filename?.includes('usePersonalizedMCP') ||
+                        event.message?.includes('Failed to fetch') ||
+                        event.message?.includes('ERR_INSUFFICIENT_RESOURCES');
+
+      if (isMcpError) {
+        // Reset counter if enough time has passed
+        if (Date.now() - lastMcpErrorReset > mcpErrorResetTime) {
+          mcpErrorCount = 0;
+          lastMcpErrorReset = Date.now();
+        }
+
+        mcpErrorCount++;
+        
+        // Only log the first few MCP errors to prevent spam
+        if (mcpErrorCount <= mcpErrorThreshold) {
+          logger.warn('MCP service error (throttled)', {
+            filename: event.filename,
+            errorCount: mcpErrorCount,
+            threshold: mcpErrorThreshold,
+            message: event.message
+          }, 'App');
+        }
+        
+        // Prevent the error from propagating to avoid console spam
+        event.preventDefault();
+        return;
+      }
+
       logger.error('Unhandled JavaScript error', new Error(event.message), {
         filename: event.filename,
         lineno: event.lineno,
@@ -92,10 +127,39 @@ function App() {
     };
 
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      const reason = String(event.reason);
+      const isMcpError = reason.includes('MCP') || 
+                        reason.includes('Failed to fetch') ||
+                        reason.includes('ERR_INSUFFICIENT_RESOURCES') ||
+                        reason.includes('skillbridge-career-dev.cloudfunctions.net');
+
+      if (isMcpError) {
+        // Reset counter if enough time has passed
+        if (Date.now() - lastMcpErrorReset > mcpErrorResetTime) {
+          mcpErrorCount = 0;
+          lastMcpErrorReset = Date.now();
+        }
+
+        mcpErrorCount++;
+        
+        // Only log the first few MCP errors to prevent spam
+        if (mcpErrorCount <= mcpErrorThreshold) {
+          logger.warn('MCP service promise rejection (throttled)', {
+            reason: reason,
+            errorCount: mcpErrorCount,
+            threshold: mcpErrorThreshold
+          }, 'App');
+        }
+        
+        // Prevent the error from propagating
+        event.preventDefault();
+        return;
+      }
+
       logger.error('Unhandled promise rejection', 
-        event.reason instanceof Error ? event.reason : new Error(String(event.reason)), 
+        event.reason instanceof Error ? event.reason : new Error(reason), 
         {
-          reason: String(event.reason)
+          reason: reason
         }, 'App');
     };
 

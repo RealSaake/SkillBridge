@@ -1,59 +1,60 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
-import { userDataIsolation, type GitHubUserData } from '../utils/userDataIsolation';
 
 interface User {
   id: string;
+  githubId: string;
   username: string;
   email: string;
-  avatarUrl?: string;
-  name?: string;
+  name: string;
+  avatarUrl: string;
   bio?: string;
   location?: string;
   company?: string;
   blog?: string;
-  publicRepos?: number;
-  followers?: number;
-  following?: number;
-  profile?: UserProfile;
-  skills?: UserSkill[];
+  publicRepos: number;
+  followers: number;
+  following: number;
+  githubCreatedAt: string;
+  githubUpdatedAt: string;
   createdAt: string;
-  githubCreatedAt?: string;
-  githubUpdatedAt?: string;
+  updatedAt: string;
+  lastLoginAt: string;
 }
 
-interface UserProfile {
-  id: string;
+interface Profile {
+  userId: string;
   currentRole?: string;
   targetRole?: string;
   experienceLevel?: string;
-  careerGoals: string[];
-  primaryGoals?: string[];
-  techStack?: string[];
-  learningStyle?: string;
-  timeCommitment?: string;
-  completedOnboarding?: boolean;
-  bio?: string;
-  location?: string;
-  website?: string;
-  linkedinUrl?: string;
-}
-
-interface UserSkill {
-  id: string;
-  skillName: string;
-  proficiencyLevel: number;
-  lastAssessed: string;
-  isVerified: boolean;
-  source: string;
+  techStack: string[];
+  careerGoal?: string;
+  completedOnboarding: boolean;
+  roadmapProgress?: {
+    [roadmapId: string]: {
+      completedSteps: string[];
+      lastUpdated: string;
+      progressPercentage: number;
+    }
+  };
+  preferences?: {
+    theme: 'light' | 'dark';
+    notifications: boolean;
+    publicProfile: boolean;
+  };
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface AuthContextType {
   user: User | null;
-  loading: boolean;
+  profile: Profile | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  hasCompletedOnboarding: boolean;
   login: (token: string, refreshToken: string) => Promise<void>;
   logout: () => Promise<void>;
-  refreshToken: () => Promise<boolean>;
-  updateUser: (userData: Partial<User>) => void;
+  updateProfile: (data: Partial<Profile>) => Promise<void>;
+  updateProgress: (roadmapId: string, completedSteps: string[]) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -62,7 +63,8 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://skillbridge-caree
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Token management
   const getAccessToken = () => localStorage.getItem('accessToken');
@@ -76,11 +78,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.removeItem('refreshToken');
   };
 
-  // API call helper with automatic token refresh
+  // API call helper
   const apiCall = async (url: string, options: RequestInit = {}): Promise<Response> => {
     const accessToken = getAccessToken();
     
-    const response = await fetch(`${API_BASE_URL}${url}`, {
+    return fetch(`${API_BASE_URL}${url}`, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
@@ -88,95 +90,40 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         ...options.headers,
       },
     });
-
-    // If token expired, try to refresh
-    if (response.status === 401 && accessToken) {
-      const refreshSuccess = await refreshToken();
-      if (refreshSuccess) {
-        // Retry the original request with new token
-        const newAccessToken = getAccessToken();
-        return fetch(`${API_BASE_URL}${url}`, {
-          ...options,
-          headers: {
-            'Content-Type': 'application/json',
-            ...(newAccessToken && { Authorization: `Bearer ${newAccessToken}` }),
-            ...options.headers,
-          },
-        });
-      }
-    }
-
-    return response;
   };
 
-  // Fetch current user with secure data isolation
-  const fetchUser = useCallback(async (): Promise<User | null> => {
+  // Fetch current user and profile data
+  const fetchUserAndProfile = useCallback(async (): Promise<{ user: User | null; profile: Profile | null }> => {
     try {
       const accessToken = getAccessToken();
-      const refreshTokenValue = getRefreshToken();
       
-      if (!accessToken || !refreshTokenValue) {
-        return null;
+      if (!accessToken) {
+        return { user: null, profile: null };
       }
 
-      // Initialize secure session
-      const sessionInitialized = userDataIsolation.initializeSession(accessToken, refreshTokenValue);
-      if (!sessionInitialized) {
-        console.warn('Failed to initialize secure session');
-        clearTokens();
-        return null;
+      const response = await apiCall('/api');
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          clearTokens();
+        }
+        return { user: null, profile: null };
       }
 
-      // Validate session integrity
-      if (!userDataIsolation.validateSessionIntegrity()) {
-        console.warn('Session integrity check failed');
-        clearTokens();
-        return null;
-      }
-
-      // Fetch user profile through secure isolation layer
-      const githubUserData = await userDataIsolation.fetchUserProfile();
+      const data = await response.json();
       
-      if (!githubUserData) {
-        console.warn('No GitHub user data returned');
-        clearTokens();
-        return null;
-      }
-      
-      // Convert GitHub data to our User format
-      const userData: User = {
-        id: githubUserData.id.toString(),
-        username: githubUserData.login,
-        email: githubUserData.email || `${githubUserData.login}@github.local`,
-        name: githubUserData.name || githubUserData.login,
-        avatarUrl: githubUserData.avatar_url,
-        bio: githubUserData.bio || undefined,
-        location: githubUserData.location || undefined,
-        company: githubUserData.company || undefined,
-        blog: githubUserData.blog || undefined,
-        publicRepos: githubUserData.public_repos,
-        followers: githubUserData.followers,
-        following: githubUserData.following,
-        profile: undefined, // Will be loaded separately
-        skills: [],
-        createdAt: githubUserData.created_at,
-        githubCreatedAt: githubUserData.created_at,
-        githubUpdatedAt: githubUserData.updated_at
+      return {
+        user: data.profile ? data : null, // User data is in the root
+        profile: data.profile || null     // Profile data is nested
       };
-
-      return userData;
     } catch (error) {
-      console.error('Error fetching user:', error);
-      
-      // Clear session on any error to prevent data contamination
-      userDataIsolation.clearSession();
+      console.error('Error fetching user and profile:', error);
       clearTokens();
-      
-      return null;
+      return { user: null, profile: null };
     }
   }, []);
 
-  // Login function with secure session initialization
+  // Login function
   const login = async (accessToken: string, refreshTokenValue: string): Promise<void> => {
     try {
       // Validate token format before storing
@@ -190,41 +137,35 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       setTokens(accessToken, refreshTokenValue);
       
-      const userData = await fetchUser();
+      const { user: userData, profile: profileData } = await fetchUserAndProfile();
       if (userData) {
         setUser(userData);
+        setProfile(profileData);
         console.log('✅ User login successful:', userData.username);
       } else {
         clearTokens();
-        userDataIsolation.clearSession();
         throw new Error('Failed to fetch user data');
       }
     } catch (error) {
       console.error('❌ Login error:', error);
       clearTokens();
-      userDataIsolation.clearSession();
       throw error;
     }
   };
 
-  // Logout function with secure session cleanup
+  // Logout function
   const logout = async (): Promise<void> => {
     try {
-      const refreshTokenValue = getRefreshToken();
-      
-      if (refreshTokenValue) {
-        await apiCall('/api/auth/logout', {
-          method: 'POST',
-          body: JSON.stringify({ refreshToken: refreshTokenValue }),
-        });
-      }
+      await apiCall('/logout', {
+        method: 'POST',
+      });
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      // Clear all session data securely
-      userDataIsolation.clearSession();
+      // Clear all session data
       clearTokens();
       setUser(null);
+      setProfile(null);
       
       // Clear any cached data
       localStorage.clear();
@@ -235,44 +176,64 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  // Refresh token function
-  const refreshToken = useCallback(async (): Promise<boolean> => {
+  // Update profile data
+  const updateProfile = async (data: Partial<Profile>): Promise<void> => {
     try {
-      const refreshTokenValue = getRefreshToken();
-      
-      if (!refreshTokenValue) {
-        return false;
-      }
-
-      const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ refreshToken: refreshTokenValue }),
+      const response = await apiCall('/profilesMe', {
+        method: 'PUT',
+        body: JSON.stringify(data),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setTokens(data.accessToken, data.refreshToken);
-        setUser(data.user);
-        return true;
-      } else {
-        clearTokens();
-        setUser(null);
-        return false;
+      if (!response.ok) {
+        throw new Error('Failed to update profile');
       }
-    } catch (error) {
-      console.error('Token refresh error:', error);
-      clearTokens();
-      setUser(null);
-      return false;
-    }
-  }, []);
 
-  // Update user data
-  const updateUser = (userData: Partial<User>) => {
-    setUser(prev => prev ? { ...prev, ...userData } : null);
+      const result = await response.json();
+      setProfile(prev => prev ? { ...prev, ...data, updatedAt: new Date().toISOString() } : null);
+      console.log('✅ Profile updated successfully');
+    } catch (error) {
+      console.error('❌ Profile update error:', error);
+      throw error;
+    }
+  };
+
+  // Update roadmap progress
+  const updateProgress = async (roadmapId: string, completedSteps: string[]): Promise<void> => {
+    try {
+      const response = await apiCall('/profilesProgress', {
+        method: 'PUT',
+        body: JSON.stringify({ roadmapId, completedSteps }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update progress');
+      }
+
+      // Update local state
+      setProfile(prev => {
+        if (!prev) return null;
+        
+        const updatedProgress = {
+          ...prev.roadmapProgress,
+          [roadmapId]: {
+            completedSteps,
+            lastUpdated: new Date().toISOString(),
+            progressPercentage: Math.round((completedSteps.length / 10) * 100)
+          }
+        };
+
+        return {
+          ...prev,
+          roadmapProgress: updatedProgress,
+          updatedAt: new Date().toISOString()
+        };
+      });
+
+      console.log('✅ Progress updated successfully');
+    } catch (error) {
+      console.error('❌ Progress update error:', error);
+      throw error;
+    }
   };
 
   // Initialize auth state
@@ -282,38 +243,35 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const refreshTokenValue = getRefreshToken();
 
       if (accessToken && refreshTokenValue) {
-        const userData = await fetchUser();
+        const { user: userData, profile: profileData } = await fetchUserAndProfile();
         if (userData) {
           setUser(userData);
+          setProfile(profileData);
         } else {
           clearTokens();
         }
       }
 
-      setLoading(false);
+      setIsLoading(false);
     };
 
     initializeAuth();
-  }, [fetchUser]);
+  }, [fetchUserAndProfile]);
 
-  // Auto-refresh token before expiration
-  useEffect(() => {
-    if (!user) return;
-
-    const interval = setInterval(async () => {
-      await refreshToken();
-    }, 10 * 60 * 1000); // Refresh every 10 minutes
-
-    return () => clearInterval(interval);
-  }, [user, refreshToken]);
+  // Computed properties
+  const isAuthenticated = !!user;
+  const hasCompletedOnboarding = !!profile?.completedOnboarding;
 
   const value: AuthContextType = {
     user,
-    loading,
+    profile,
+    isAuthenticated,
+    isLoading,
+    hasCompletedOnboarding,
     login,
     logout,
-    refreshToken,
-    updateUser,
+    updateProfile,
+    updateProgress,
   };
 
   return (

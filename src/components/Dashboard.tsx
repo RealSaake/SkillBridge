@@ -6,17 +6,22 @@ import { SkillGapAnalysis } from './SkillGapAnalysis';
 import { LearningRoadmap } from './LearningRoadmap';
 import { JobMarketInsights } from './JobMarketInsights';
 import { Button } from './ui/button';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, LogOut } from 'lucide-react';
+import { MCPErrorBoundary } from './MCPErrorBoundary';
+import { clearMCPCache } from '../hooks/usePersonalizedMCP';
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, profile, isLoading, hasCompletedOnboarding, logout } = useAuth();
   const [refreshing, setRefreshing] = React.useState(false);
+  const [signingOut, setSigningOut] = React.useState(false);
 
   const handleRefresh = async () => {
     if (refreshing) return;
     
     try {
       setRefreshing(true);
+      // Clear MCP cache to force fresh data
+      clearMCPCache();
       // Refresh logic would go here
       await new Promise(resolve => setTimeout(resolve, 1000)); // Mock delay
     } catch (error) {
@@ -26,7 +31,34 @@ export default function Dashboard() {
     }
   };
 
-  if (!user) {
+  const handleSignOut = async () => {
+    if (signingOut) return;
+    
+    try {
+      setSigningOut(true);
+      await logout();
+    } catch (error) {
+      console.error('Sign out failed:', error);
+    } finally {
+      setSigningOut(false);
+    }
+  };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4" />
+          <p className="text-lg">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect to onboarding if not completed
+  if (!user || !hasCompletedOnboarding) {
+    window.location.href = '/onboarding';
     return null;
   }
 
@@ -54,16 +86,29 @@ export default function Dashboard() {
               </div>
             </div>
             
-            <Button
-              onClick={handleRefresh}
-              variant="ghost"
-              size="sm"
-              disabled={refreshing}
-              className="flex items-center gap-2"
-            >
-              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-              Refresh
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={handleRefresh}
+                variant="ghost"
+                size="sm"
+                disabled={refreshing}
+                className="flex items-center gap-2"
+              >
+                <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+              
+              <Button
+                onClick={handleSignOut}
+                variant="ghost"
+                size="sm"
+                disabled={signingOut}
+                className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+              >
+                <LogOut className="w-4 h-4" />
+                {signingOut ? 'Signing out...' : 'Sign out'}
+              </Button>
+            </div>
           </div>
         </div>
       </header>
@@ -71,23 +116,65 @@ export default function Dashboard() {
       <main className="container mx-auto px-6 py-8 max-w-6xl">
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-3xl mb-2">Welcome to SkillBridge</h1>
+          <h1 className="text-3xl mb-2">
+            Welcome back, {user.name?.split(' ')[0] || user.username}!
+          </h1>
           <p className="text-lg text-muted-foreground">
-            Your AI-powered career development companion
+            {profile?.targetRole ? (
+              <>Your journey to becoming a <span className="font-medium text-foreground">{profile.targetRole.replace('-', ' ')}</span> continues</>
+            ) : (
+              'Your AI-powered career development companion'
+            )}
           </p>
+          {profile?.careerGoal && (
+            <p className="text-sm text-muted-foreground mt-2">
+              Goal: {profile.careerGoal}
+            </p>
+          )}
         </div>
+
+        {/* Profile Summary */}
+        {profile && (
+          <div className="mb-8 p-4 bg-card rounded-lg border">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground">Current Role</h3>
+                <p className="text-lg font-semibold">{profile.currentRole || 'Not specified'}</p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground">Experience Level</h3>
+                <p className="text-lg font-semibold capitalize">{profile.experienceLevel || 'Not specified'}</p>
+              </div>
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground">Tech Stack</h3>
+                <p className="text-sm">
+                  {profile.techStack && profile.techStack.length > 0 
+                    ? profile.techStack.slice(0, 3).join(', ') + (profile.techStack.length > 3 ? ` +${profile.techStack.length - 3} more` : '')
+                    : 'Not specified'
+                  }
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Sacred UI Layout: 2-column grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="space-y-6">
             <GitHubActivity />
-            <SkillGapAnalysis />
+            <MCPErrorBoundary>
+              <SkillGapAnalysis />
+            </MCPErrorBoundary>
             <JobMarketInsights />
           </div>
           
           <div className="space-y-6">
-            <ResumeReview />
-            <LearningRoadmap />
+            <MCPErrorBoundary>
+              <ResumeReview />
+            </MCPErrorBoundary>
+            <MCPErrorBoundary>
+              <LearningRoadmap />
+            </MCPErrorBoundary>
           </div>
         </div>
       </main>

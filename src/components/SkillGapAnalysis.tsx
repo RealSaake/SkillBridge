@@ -20,7 +20,7 @@ interface SkillCategory {
 
 export function SkillGapAnalysis() {
   const [isExpanded, setIsExpanded] = useState(true);
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
 
   // Live MCP integration for skill gap analysis
   const { 
@@ -30,7 +30,7 @@ export function SkillGapAnalysis() {
     refetch: refetchAnalysis 
   } = usePersonalizedSkillGapAnalysis(
     user?.username || '', 
-    user?.profile?.targetRole || 'fullstack-developer'
+    profile?.targetRole || 'fullstack-developer'
   );
 
   // Parse MCP response or use fallback data

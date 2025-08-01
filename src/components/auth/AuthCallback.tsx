@@ -11,6 +11,7 @@ export const AuthCallback: React.FC = () => {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [userType, setUserType] = useState<'new' | 'returning' | null>(null);
 
   useEffect(() => {
     // Prevent multiple executions and ensure single navigation
@@ -42,17 +43,42 @@ export const AuthCallback: React.FC = () => {
           return;
         }
 
-        // Login with tokens
+        // Login with tokens - this will fetch user and profile data
         await login(token, refreshToken);
-        setStatus('success');
         
-        // Single, clean navigation after success
-        if (!hasNavigated) {
-          hasNavigated = true;
-          setTimeout(() => {
-            if (!hasNavigated) return; // Double-check to prevent race conditions
-            navigate('/onboarding', { replace: true });
-          }, 1500);
+        // Check if user has completed onboarding by making a direct API call
+        const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://skillbridge-career-dev.web.app';
+        const profileResponse = await fetch(`${API_BASE_URL}/profilesMe`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (profileResponse.ok) {
+          // User has a profile - returning user
+          setUserType('returning');
+          setStatus('success');
+          
+          if (!hasNavigated) {
+            hasNavigated = true;
+            setTimeout(() => {
+              navigate('/dashboard', { replace: true });
+            }, 1500);
+          }
+        } else if (profileResponse.status === 404) {
+          // User doesn't have a profile - new user
+          setUserType('new');
+          setStatus('success');
+          
+          if (!hasNavigated) {
+            hasNavigated = true;
+            setTimeout(() => {
+              navigate('/onboarding', { replace: true });
+            }, 1500);
+          }
+        } else {
+          throw new Error('Failed to check profile status');
         }
 
       } catch (error) {
@@ -119,7 +145,7 @@ export const AuthCallback: React.FC = () => {
         <CardContent className="text-center space-y-4">
           {status === 'loading' && (
             <div className="space-y-2">
-              <p className="text-gray-600">Setting up your personalized dashboard...</p>
+              <p className="text-gray-600">Checking your account status...</p>
               <div className="flex justify-center space-x-1">
                 <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
                 <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
@@ -128,10 +154,17 @@ export const AuthCallback: React.FC = () => {
             </div>
           )}
 
-          {status === 'success' && (
+          {status === 'success' && userType === 'new' && (
             <div className="space-y-2">
-              <p className="text-green-600 font-medium">Authentication successful!</p>
-              <p className="text-gray-600">Redirecting to your dashboard...</p>
+              <p className="text-green-600 font-medium">Welcome to SkillBridge!</p>
+              <p className="text-gray-600">Let's set up your profile...</p>
+            </div>
+          )}
+
+          {status === 'success' && userType === 'returning' && (
+            <div className="space-y-2">
+              <p className="text-green-600 font-medium">Welcome back!</p>
+              <p className="text-gray-600">Taking you to your dashboard...</p>
             </div>
           )}
 

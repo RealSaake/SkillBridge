@@ -55,7 +55,7 @@ interface ProfileCustomization {
 }
 
 const ProfileSettings: React.FC = () => {
-  const { user, updateUser } = useAuth();
+  const { user } = useAuth();
   const [settings, setSettings] = useState<ProfileVisibilitySettings>({
     isPublic: false,
     showEmail: false,

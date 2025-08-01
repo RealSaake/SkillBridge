@@ -16,7 +16,7 @@ interface QuizData {
 }
 
 export const OnboardingQuiz: React.FC = () => {
-  const { user, updateUser } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -50,37 +50,44 @@ export const OnboardingQuiz: React.FC = () => {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      // Update user profile with quiz data
-      updateUser({
-        ...user!,
-        profile: {
-          id: 'profile-' + user!.id,
-          ...quizData,
-          careerGoals: quizData.primaryGoals,
-          completedOnboarding: true
-        }
-      });
+      // Prepare profile data for the new API
+      const profileData = {
+        currentRole: quizData.currentRole,
+        targetRole: quizData.targetRole,
+        experienceLevel: quizData.experienceLevel,
+        techStack: quizData.techStack,
+        careerGoal: quizData.primaryGoals.join(', '), // Convert array to string
+        learningStyle: quizData.learningStyle,
+        timeCommitment: quizData.timeCommitment
+      };
 
-      // Save to backend
+      // Create profile using the new API endpoint
       const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://skillbridge-career-dev.web.app';
       const token = localStorage.getItem('accessToken');
       
-      await fetch(`${API_BASE_URL}/profiles`, {
-        method: 'PATCH',
+      const response = await fetch(`${API_BASE_URL}/profilesCreate`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          ...quizData,
-          completedOnboarding: true
-        })
+        body: JSON.stringify(profileData)
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create profile');
+      }
+
+      const result = await response.json();
+      console.log('✅ Profile created successfully:', result);
 
       // Show the Aha! moment instead of going directly to dashboard
       setShowAhaMoment(true);
     } catch (error) {
-      console.error('Error saving profile:', error);
+      console.error('❌ Error creating profile:', error);
+      // Show error to user
+      alert('Failed to save your profile. Please try again.');
     } finally {
       setLoading(false);
     }
