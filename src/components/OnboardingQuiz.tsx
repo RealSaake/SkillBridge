@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { AhaMomentCard } from './AhaMomentCard';
+// AhaMomentCard removed - implementing simplified flow
 
 interface QuizData {
   currentRole: string;
@@ -363,9 +363,25 @@ export const OnboardingQuiz: React.FC = () => {
     }
   };
 
-  // Show Aha! moment after quiz completion
+  // Show completion message after quiz
   if (showAhaMoment) {
-    return <AhaMomentCard quizData={quizData} onContinue={handleAhaMomentContinue} />;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-2xl">
+          <CardHeader>
+            <CardTitle className="text-center text-2xl">Profile Complete!</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center">
+            <p className="text-muted-foreground mb-6">
+              Your career profile has been set up successfully. You can now access personalized insights and recommendations.
+            </p>
+            <Button onClick={handleAhaMomentContinue} size="lg">
+              Continue to Dashboard
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   return (

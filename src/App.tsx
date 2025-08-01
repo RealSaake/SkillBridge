@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import { TraceProvider } from './contexts/TraceContext';
@@ -37,6 +37,17 @@ export const useTheme = () => {
   }
   return context;
 };
+
+// Landing page wrapper with navigation
+function LandingPageWrapper() {
+  const navigate = useNavigate();
+  return (
+    <LandingPage 
+      onGetStarted={() => navigate('/login')}
+      onSignIn={() => navigate('/login')}
+    />
+  );
+}
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -114,7 +125,7 @@ function App() {
                   }`}>
                   <Routes>
                     {/* Public routes */}
-                    <Route path="/" element={<LandingPage />} />
+                    <Route path="/" element={<LandingPageWrapper />} />
                     <Route 
                       path="/login" 
                       element={

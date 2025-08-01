@@ -352,20 +352,21 @@ class Validator {
         }
       }
 
-      // Check for unexpected fields (potential security issue)
+      // Check for unexpected fields but handle them gracefully
       const allowedFields = Object.keys(schema);
       const providedFields = Object.keys(data || {});
       const unexpectedFields = providedFields.filter(field => !allowedFields.includes(field));
       
       if (unexpectedFields.length > 0) {
-        logger.security('Unexpected fields in validation', 'medium', {
-          unexpectedFields,
-          allowedFields,
-          providedFields
+        logger.warn('Unexpected fields in validation - discarding safely', {
+          unexpectedFields: unexpectedFields.slice(0, 10), // Limit logging
+          allowedFieldCount: allowedFields.length,
+          providedFieldCount: providedFields.length,
+          context: 'GitHub API response contains additional fields'
         });
         
-        // Don't include unexpected fields in sanitized data
-        // This prevents potential injection attacks
+        // Silently discard unexpected fields - this is normal for GitHub API
+        // Only log as warning, not security event, since GitHub API evolves
       }
 
       const isValid = Object.keys(errors).length === 0;

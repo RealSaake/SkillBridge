@@ -356,7 +356,7 @@ class AnalyticsService {
    */
   private async sendAnalyticsEvent(event: AnalyticsEvent): Promise<void> {
     try {
-      await fetch(`${this.baseUrl}/api/analytics/events`, {
+      const response = await fetch(`${this.baseUrl}/api/analytics/events`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -364,9 +364,28 @@ class AnalyticsService {
         },
         body: JSON.stringify(event)
       });
+      
+      // Silently handle non-critical failures
+      if (!response.ok && response.status !== 404) {
+        // Only log actual server errors, not blocked requests
+        logError('Analytics endpoint error', new Error(`HTTP ${response.status}`), {
+          event: event.event,
+          status: response.status
+        }, 'AnalyticsService');
+      }
     } catch (error) {
-      // Analytics failures should not break the app
-      console.warn('Failed to send analytics event:', error);
+      // Completely silent for blocked requests (ad blockers, network issues)
+      // Analytics failures must never break the app or spam console
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        // This is likely an ad blocker or network issue - fail silently
+        return;
+      }
+      
+      // Only log unexpected errors
+      logError('Analytics network error', error as Error, {
+        event: event.event,
+        errorType: error instanceof Error ? error.constructor.name : 'Unknown'
+      }, 'AnalyticsService');
     }
   }
 

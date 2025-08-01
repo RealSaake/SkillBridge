@@ -1,7 +1,8 @@
 import React from 'react';
-import { ArrowRight, Sparkles, Target, TrendingUp, Users, Star } from 'lucide-react';
+import { ArrowRight, Sparkles, Target, TrendingUp, Users, CheckCircle, Star } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
+import { useTheme } from '../App';
 
 interface LandingPageProps {
   onGetStarted: () => void;
@@ -9,6 +10,8 @@ interface LandingPageProps {
 }
 
 export function LandingPage({ onGetStarted, onSignIn }: LandingPageProps) {
+  const { theme, toggleTheme } = useTheme();
+
   const features = [
     {
       icon: Target,
@@ -62,10 +65,10 @@ export function LandingPage({ onGetStarted, onSignIn }: LandingPageProps) {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-        <div className="container mx-auto px-6 h-16 flex items-center justify-between max-w-6xl">
+        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-primary to-primary/80 flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-primary-foreground" />
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-white" />
             </div>
             <div>
               <h1 className="text-lg font-semibold">SkillBridge</h1>
@@ -74,6 +77,9 @@ export function LandingPage({ onGetStarted, onSignIn }: LandingPageProps) {
           </div>
           
           <div className="flex items-center space-x-4">
+            <Button variant="ghost" onClick={toggleTheme}>
+              {theme === 'dark' ? '☀️' : '🌙'}
+            </Button>
             <Button variant="ghost" onClick={onSignIn}>
               Sign In
             </Button>
@@ -85,7 +91,7 @@ export function LandingPage({ onGetStarted, onSignIn }: LandingPageProps) {
       </header>
 
       {/* Hero Section */}
-      <section className="py-20 px-6">
+      <section className="py-20 px-4">
         <div className="container mx-auto max-w-6xl text-center">
           <div className="mb-8">
             <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary/10 text-primary mb-6">
@@ -94,7 +100,7 @@ export function LandingPage({ onGetStarted, onSignIn }: LandingPageProps) {
             </div>
             <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent">
               Accelerate Your<br />
-              <span className="bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
                 Career Growth
               </span>
             </h1>
@@ -131,7 +137,7 @@ export function LandingPage({ onGetStarted, onSignIn }: LandingPageProps) {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-6 bg-muted/30">
+      <section className="py-20 px-4 bg-muted/30">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
@@ -163,7 +169,7 @@ export function LandingPage({ onGetStarted, onSignIn }: LandingPageProps) {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-20 px-6">
+      <section className="py-20 px-4">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
@@ -200,8 +206,8 @@ export function LandingPage({ onGetStarted, onSignIn }: LandingPageProps) {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-6 bg-gradient-to-r from-primary to-primary/80">
-        <div className="container mx-auto max-w-4xl text-center text-primary-foreground">
+      <section className="py-20 px-4 bg-gradient-to-r from-blue-500 to-purple-600">
+        <div className="container mx-auto max-w-4xl text-center text-white">
           <h2 className="text-3xl md:text-5xl font-bold mb-4">
             Ready to transform your career?
           </h2>
@@ -223,7 +229,7 @@ export function LandingPage({ onGetStarted, onSignIn }: LandingPageProps) {
               size="lg" 
               variant="outline" 
               onClick={onSignIn}
-              className="text-lg px-8 py-6 border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20"
+              className="text-lg px-8 py-6 border-white/20 bg-white/10 text-white hover:bg-white/20"
             >
               Book a Demo
             </Button>
@@ -235,12 +241,12 @@ export function LandingPage({ onGetStarted, onSignIn }: LandingPageProps) {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-6 border-t bg-background">
+      <footer className="py-12 px-4 border-t bg-background">
         <div className="container mx-auto max-w-6xl">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-3 mb-4 md:mb-0">
-              <div className="w-6 h-6 rounded bg-gradient-to-r from-primary to-primary/80 flex items-center justify-center">
-                <Sparkles className="w-3 h-3 text-primary-foreground" />
+              <div className="w-6 h-6 rounded bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
+                <Sparkles className="w-3 h-3 text-white" />
               </div>
               <span className="font-semibold">SkillBridge</span>
             </div>

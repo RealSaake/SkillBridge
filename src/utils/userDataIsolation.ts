@@ -801,7 +801,18 @@ class UserDataIsolation {
             subscription_url: { type: 'string' as const, required: false },
             tags_url: { type: 'string' as const, required: false },
             teams_url: { type: 'string' as const, required: false },
-            trees_url: { type: 'string' as const, required: false }
+            trees_url: { type: 'string' as const, required: false },
+            
+            // Additional fields that may appear in GitHub API responses
+            temp_clone_token: { type: 'string' as const, required: false },
+            delete_branch_on_merge: { type: 'boolean' as const, required: false },
+            merge_commit_title: { type: 'string' as const, required: false },
+            merge_commit_message: { type: 'string' as const, required: false },
+            squash_merge_commit_title: { type: 'string' as const, required: false },
+            squash_merge_commit_message: { type: 'string' as const, required: false },
+            use_squash_pr_title_as_default: { type: 'boolean' as const, required: false },
+            security_and_analysis: { type: 'object' as const, required: false },
+            master_branch: { type: 'string' as const, required: false }
           });
 
           if (repoValidation.isValid) {

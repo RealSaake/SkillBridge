@@ -13,21 +13,15 @@ export const AuthCallback: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    // Prevent multiple executions
+    // Prevent multiple executions and ensure single navigation
     if (isProcessing) {
       return;
     }
 
-    console.log('🚀 AuthCallback Component Mounted');
-    console.log('📍 Current URL:', window.location.href);
-    console.log('🔧 Environment Variables:', {
-      apiUrl: process.env.REACT_APP_API_URL,
-      environment: process.env.REACT_APP_ENVIRONMENT,
-      nodeEnv: process.env.NODE_ENV
-    });
+    let hasNavigated = false;
     
     const handleCallback = async () => {
-      if (isProcessing) return;
+      if (isProcessing || hasNavigated) return;
       
       setIsProcessing(true);
       
@@ -35,10 +29,6 @@ export const AuthCallback: React.FC = () => {
         const token = searchParams.get('token');
         const refreshToken = searchParams.get('refresh');
         const error = searchParams.get('error');
-        const githubUser = searchParams.get('github_user');
-        const githubId = searchParams.get('github_id');
-        const avatar = searchParams.get('avatar');
-        const name = searchParams.get('name');
 
         if (error) {
           setStatus('error');
@@ -56,18 +46,17 @@ export const AuthCallback: React.FC = () => {
         await login(token, refreshToken);
         setStatus('success');
         
-        // Redirect to onboarding (simplified flow)
-        setTimeout(() => {
-          navigate('/onboarding', { replace: true });
-        }, 1500);
+        // Single, clean navigation after success
+        if (!hasNavigated) {
+          hasNavigated = true;
+          setTimeout(() => {
+            if (!hasNavigated) return; // Double-check to prevent race conditions
+            navigate('/onboarding', { replace: true });
+          }, 1500);
+        }
 
       } catch (error) {
-        console.error('❌ Authentication callback error:', error);
-        console.error('❌ Error details:', {
-          message: error instanceof Error ? error.message : String(error),
-          stack: error instanceof Error ? error.stack : undefined,
-          name: error instanceof Error ? error.name : typeof error
-        });
+        console.error('Authentication callback error:', error);
         setStatus('error');
         setErrorMessage('Failed to complete authentication');
       } finally {
@@ -76,7 +65,12 @@ export const AuthCallback: React.FC = () => {
     };
 
     handleCallback();
-  }, [searchParams, login, navigate, isProcessing]);
+    
+    // Cleanup function to prevent navigation after unmount
+    return () => {
+      hasNavigated = true;
+    };
+  }, [searchParams, login, navigate]);
 
   const getErrorMessage = (error: string): string => {
     switch (error) {

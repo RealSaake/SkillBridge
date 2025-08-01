@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from '../contexts/AuthContext';
 import { ThemeContext } from '../App';
-import { GitHubActivityEnhanced } from '../components/GitHubActivityEnhanced';
+// GitHubActivityEnhanced component removed
 import { SkillGapAnalysisEnhanced } from '../components/SkillGapAnalysisEnhanced';
 
 // Mock the MCP hooks
