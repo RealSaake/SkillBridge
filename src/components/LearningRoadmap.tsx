@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { BookOpen, Clock, CheckCircle, PlayCircle, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { BookOpen, Clock, CheckCircle, PlayCircle, ChevronDown, ChevronUp, ExternalLink, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
+import { useAuth } from '../contexts/AuthContext';
+import { usePersonalizedLearningRoadmap } from '../hooks/usePersonalizedMCP';
 
 interface LearningItem {
   id: string;
@@ -26,8 +28,21 @@ interface RoadmapWeek {
 export function LearningRoadmap() {
   const [isExpanded, setIsExpanded] = useState(true);
   const [selectedWeek, setSelectedWeek] = useState(1);
+  const { user } = useAuth();
 
-  const roadmap: RoadmapWeek[] = [
+  // Live MCP integration for learning roadmap
+  const { 
+    data: roadmapData, 
+    loading: roadmapLoading, 
+    error: roadmapError,
+    refetch: refetchRoadmap 
+  } = usePersonalizedLearningRoadmap(
+    user?.profile?.targetRole || 'fullstack-developer',
+    user?.profile?.techStack || []
+  );
+
+  // Parse MCP response or use fallback data
+  const roadmap: RoadmapWeek[] = roadmapData?.weeks || [
     {
       week: 1,
       theme: "Docker Fundamentals",
@@ -229,30 +244,72 @@ export function LearningRoadmap() {
 
       {isExpanded && (
         <CardContent className="space-y-6">
-          {/* Progress Overview */}
-          <div className="p-4 rounded-lg bg-muted/50">
-            <h4 className="text-sm mb-3 font-medium">Overall Progress</h4>
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div>
-                <div className="text-2xl font-bold text-green-500">{completedItems}</div>
-                <div className="text-xs text-muted-foreground">Completed</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold text-blue-500">{inProgressItems}</div>
-                <div className="text-xs text-muted-foreground">In Progress</div>
-              </div>
-              <div>
-                <div className="text-2xl font-bold">{totalItems - completedItems - inProgressItems}</div>
-                <div className="text-xs text-muted-foreground">Remaining</div>
+          {/* Loading State */}
+          {roadmapLoading && (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin mr-3" />
+              <div className="text-center">
+                <p className="text-sm font-medium">Generating your learning roadmap...</p>
+                <p className="text-xs text-muted-foreground mt-1">Creating personalized learning path based on your profile</p>
               </div>
             </div>
-            <div className="w-full bg-muted rounded-full h-2 mt-3">
-              <div 
-                className="bg-primary h-2 rounded-full transition-all duration-300"
-                style={{ width: `${(completedItems / totalItems) * 100}%` }}
-              />
+          )}
+
+          {/* Error State */}
+          {roadmapError && (
+            <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <BookOpen className="w-4 h-4 text-destructive" />
+                <h4 className="text-sm font-medium text-destructive">Roadmap Generation Failed</h4>
+              </div>
+              <p className="text-sm text-muted-foreground mb-3">{roadmapError}</p>
+              <Button size="sm" variant="outline" onClick={refetchRoadmap}>
+                Try Again
+              </Button>
             </div>
-          </div>
+          )}
+
+          {/* No Data State */}
+          {!roadmapLoading && !roadmapError && roadmap.length === 0 && (
+            <div className="text-center py-12">
+              <BookOpen className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="text-lg font-semibold mb-2">No Learning Roadmap Available</h3>
+              <p className="text-sm text-muted-foreground mb-6">
+                Complete your profile setup to generate a personalized learning roadmap
+              </p>
+              <Button onClick={refetchRoadmap}>
+                Generate Roadmap
+              </Button>
+            </div>
+          )}
+
+          {/* Roadmap Content */}
+          {!roadmapLoading && !roadmapError && roadmap.length > 0 && (
+            <>
+              {/* Progress Overview */}
+              <div className="p-4 rounded-lg bg-muted/50">
+                <h4 className="text-sm mb-3 font-medium">Overall Progress</h4>
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <div className="text-2xl font-bold text-green-500">{completedItems}</div>
+                    <div className="text-xs text-muted-foreground">Completed</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-blue-500">{inProgressItems}</div>
+                    <div className="text-xs text-muted-foreground">In Progress</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold">{totalItems - completedItems - inProgressItems}</div>
+                    <div className="text-xs text-muted-foreground">Remaining</div>
+                  </div>
+                </div>
+                <div className="w-full bg-muted rounded-full h-2 mt-3">
+                  <div 
+                    className="bg-primary h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${totalItems > 0 ? (completedItems / totalItems) * 100 : 0}%` }}
+                  />
+                </div>
+              </div>
 
           {/* Week Navigation */}
           <div>
@@ -354,15 +411,17 @@ export function LearningRoadmap() {
             </div>
           )}
 
-          {/* Estimated Completion */}
-          <div className="p-3 rounded-lg border border-blue-200 bg-blue-50">
-            <div className="flex items-center space-x-2">
-              <Clock className="w-4 h-4 text-blue-500" />
-              <span className="text-sm">
-                Estimated completion: 4 weeks (based on 10 hours/week)
-              </span>
-            </div>
-          </div>
+              {/* Estimated Completion */}
+              <div className="p-3 rounded-lg border border-blue-200 bg-blue-50">
+                <div className="flex items-center space-x-2">
+                  <Clock className="w-4 h-4 text-blue-500" />
+                  <span className="text-sm">
+                    Estimated completion: {roadmap.length} weeks (based on 10 hours/week)
+                  </span>
+                </div>
+              </div>
+            </>
+          )}
         </CardContent>
       )}
     </Card>

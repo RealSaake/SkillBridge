@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { Target, TrendingUp, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Target, TrendingUp, AlertTriangle, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
+import { useAuth } from '../contexts/AuthContext';
+import { usePersonalizedSkillGapAnalysis } from '../hooks/usePersonalizedMCP';
 
 interface Skill {
   name: string;
@@ -18,28 +20,21 @@ interface SkillCategory {
 
 export function SkillGapAnalysis() {
   const [isExpanded, setIsExpanded] = useState(true);
+  const { user } = useAuth();
 
-  // Data binding: These will be populated by MCP server calls
-  const skillData: SkillCategory[] = [
-    {
-      category: 'Frontend Technologies',
-      skills: [
-        { name: 'React', currentLevel: 85, targetLevel: 90, importance: 'high', trending: true },
-        { name: 'TypeScript', currentLevel: 70, targetLevel: 85, importance: 'high', trending: true },
-        { name: 'Next.js', currentLevel: 60, targetLevel: 80, importance: 'medium', trending: true },
-        { name: 'Tailwind CSS', currentLevel: 75, targetLevel: 85, importance: 'medium', trending: false },
-      ]
-    },
-    {
-      category: 'Backend & Tools',
-      skills: [
-        { name: 'Node.js', currentLevel: 70, targetLevel: 80, importance: 'high', trending: false },
-        { name: 'Docker', currentLevel: 40, targetLevel: 75, importance: 'high', trending: true },
-        { name: 'GraphQL', currentLevel: 30, targetLevel: 70, importance: 'medium', trending: true },
-        { name: 'AWS', currentLevel: 35, targetLevel: 65, importance: 'high', trending: false },
-      ]
-    }
-  ];
+  // Live MCP integration for skill gap analysis
+  const { 
+    data: skillGapData, 
+    loading: analysisLoading, 
+    error: analysisError,
+    refetch: refetchAnalysis 
+  } = usePersonalizedSkillGapAnalysis(
+    user?.username || '', 
+    user?.profile?.targetRole || 'fullstack-developer'
+  );
+
+  // Parse MCP response or use fallback data
+  const skillData: SkillCategory[] = skillGapData?.skillCategories || [];
 
   const getImportanceColor = (importance: string) => {
     switch (importance) {
@@ -87,24 +82,71 @@ export function SkillGapAnalysis() {
 
       {isExpanded && (
         <CardContent className="space-y-6">
-          {/* Priority Skills Alert */}
-          {prioritySkills.length > 0 && (
-            <div className="p-4 rounded-lg border-l-4 border-red-500 bg-red-50">
-              <div className="flex items-start space-x-3">
-                <AlertTriangle className="w-5 h-5 text-red-500 mt-0.5" />
-                <div>
-                  <h4 className="text-sm font-medium">Priority Skills to Focus On</h4>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {prioritySkills.map((skill) => (
-                      <span key={skill.name} className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">
-                        {skill.name} ({skill.targetLevel - skill.currentLevel}% gap)
-                      </span>
-                    ))}
-                  </div>
-                </div>
+          {/* Loading State */}
+          {analysisLoading && (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin mr-3" />
+              <div className="text-center">
+                <p className="text-sm font-medium">Analyzing your skill gaps...</p>
+                <p className="text-xs text-muted-foreground mt-1">Comparing your GitHub activity with target role requirements</p>
               </div>
             </div>
           )}
+
+          {/* Error State */}
+          {analysisError && (
+            <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertTriangle className="w-4 h-4 text-destructive" />
+                <h4 className="text-sm font-medium text-destructive">Analysis Failed</h4>
+              </div>
+              <p className="text-sm text-muted-foreground mb-3">{analysisError}</p>
+              <Button size="sm" variant="outline" onClick={refetchAnalysis}>
+                Try Again
+              </Button>
+            </div>
+          )}
+
+          {/* No Data State */}
+          {!analysisLoading && !analysisError && (!user?.username || skillData.length === 0) && (
+            <div className="text-center py-12">
+              <Target className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="text-lg font-semibold mb-2">No Skill Analysis Available</h3>
+              <p className="text-sm text-muted-foreground mb-6">
+                {!user?.username 
+                  ? 'Please connect your GitHub account to analyze your skills'
+                  : 'Unable to analyze skills. Please ensure your GitHub profile is accessible.'
+                }
+              </p>
+              {user?.username && (
+                <Button onClick={refetchAnalysis}>
+                  Retry Analysis
+                </Button>
+              )}
+            </div>
+          )}
+
+          {/* Analysis Results */}
+          {!analysisLoading && !analysisError && skillData.length > 0 && (
+            <>
+              {/* Priority Skills Alert */}
+              {prioritySkills.length > 0 && (
+                <div className="p-4 rounded-lg border-l-4 border-red-500 bg-red-50">
+                  <div className="flex items-start space-x-3">
+                    <AlertTriangle className="w-5 h-5 text-red-500 mt-0.5" />
+                    <div>
+                      <h4 className="text-sm font-medium">Priority Skills to Focus On</h4>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {prioritySkills.map((skill) => (
+                          <span key={skill.name} className="px-2 py-1 bg-red-100 text-red-800 text-xs rounded-full">
+                            {skill.name} ({skill.targetLevel - skill.currentLevel}% gap)
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
           {/* Skill Categories */}
           {skillData.map((category) => (
@@ -177,24 +219,26 @@ export function SkillGapAnalysis() {
             </div>
           ))}
 
-          {/* Summary Stats */}
-          <div className="p-4 rounded-lg bg-muted/50">
-            <h4 className="text-sm mb-2 font-medium">Analysis Summary</h4>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-muted-foreground">
-                  Total Skills Tracked:
-                </span>
-                <p className="text-lg font-bold">{skillData.reduce((acc, cat) => acc + cat.skills.length, 0)}</p>
+              {/* Summary Stats */}
+              <div className="p-4 rounded-lg bg-muted/50">
+                <h4 className="text-sm mb-2 font-medium">Analysis Summary</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">
+                      Total Skills Tracked:
+                    </span>
+                    <p className="text-lg font-bold">{skillData.reduce((acc, cat) => acc + cat.skills.length, 0)}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">
+                      Priority Gaps:
+                    </span>
+                    <p className="text-lg font-bold text-red-500">{prioritySkills.length}</p>
+                  </div>
+                </div>
               </div>
-              <div>
-                <span className="text-muted-foreground">
-                  Priority Gaps:
-                </span>
-                <p className="text-lg font-bold text-red-500">{prioritySkills.length}</p>
-              </div>
-            </div>
-          </div>
+            </>
+          )}
         </CardContent>
       )}
     </Card>
