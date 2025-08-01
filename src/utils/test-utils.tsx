@@ -2,6 +2,7 @@ import React, { ReactElement } from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeContext } from '../App';
+import { AuthProvider } from '../contexts/AuthContext';
 
 // Create test query client
 const createTestQueryClient = () => new QueryClient({
@@ -24,7 +25,9 @@ const TestProviders: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeContext.Provider value={themeValue}>
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </ThemeContext.Provider>
     </QueryClientProvider>
   );

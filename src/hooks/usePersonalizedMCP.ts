@@ -242,4 +242,7 @@ export function usePersonalizedResumeAnalysis(resumeContent?: string) {
 // Clear all MCP cache (useful for logout or profile changes)
 export function clearMCPCache() {
   mcpCache.clear();
+  console.log('MCP cache cleared');
 }
+
+// Export the existing hooks without duplication - they already use real MCP calls

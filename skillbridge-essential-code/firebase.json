@@ -1,0 +1,71 @@
+{
+    "functions": [
+        {
+            "source": "functions",
+            "codebase": "default",
+            "ignore": [
+                "node_modules",
+                ".git",
+                "firebase-debug.log",
+                "firebase-debug.*.log"
+            ]
+        }
+    ],
+    "hosting": {
+        "public": "public",
+        "ignore": [
+            "firebase.json",
+            "**/.*",
+            "**/node_modules/**"
+        ],
+        "headers": [
+            {
+                "source": "/api/**",
+                "headers": [
+                    {
+                        "key": "Cache-Control",
+                        "value": "no-cache, no-store, must-revalidate"
+                    }
+                ]
+            }
+        ],
+        "rewrites": [
+            {
+                "source": "/api/auth/github",
+                "function": "githubAuth"
+            },
+            {
+                "source": "/api/auth/github/callback",
+                "function": "githubCallback"
+            },
+            {
+                "source": "/auth/me",
+                "function": "userAuth"
+            },
+            {
+                "source": "/profiles",
+                "function": "profiles"
+            },
+            {
+                "source": "/api/mcp/github-analysis",
+                "function": "mcpGithubAnalysis"
+            },
+            {
+                "source": "/api/mcp/skills-analysis",
+                "function": "mcpSkillsAnalysis"
+            },
+            {
+                "source": "/health",
+                "function": "health"
+            },
+            {
+                "source": "/api",
+                "function": "api"
+            },
+            {
+                "source": "**",
+                "destination": "/index.html"
+            }
+        ]
+    }
+}

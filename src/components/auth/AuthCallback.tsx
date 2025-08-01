@@ -10,8 +10,14 @@ export const AuthCallback: React.FC = () => {
   const { login } = useAuth();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
+    // Prevent multiple executions
+    if (isProcessing) {
+      return;
+    }
+
     console.log('🚀 AuthCallback Component Mounted');
     console.log('📍 Current URL:', window.location.href);
     console.log('🔧 Environment Variables:', {
@@ -21,37 +27,22 @@ export const AuthCallback: React.FC = () => {
     });
     
     const handleCallback = async () => {
+      if (isProcessing) return;
+      
+      setIsProcessing(true);
+      
       try {
         const token = searchParams.get('token');
         const refreshToken = searchParams.get('refresh');
         const error = searchParams.get('error');
-        const demo = searchParams.get('demo');
-
-        console.log('🔐 AuthCallback Debug:', {
-          token: token ? `${token.substring(0, 20)}...` : null,
-          refreshToken: refreshToken ? `${refreshToken.substring(0, 20)}...` : null,
-          error,
-          demo,
-          currentUrl: window.location.href,
-          searchParams: Object.fromEntries(searchParams.entries())
-        });
+        const githubUser = searchParams.get('github_user');
+        const githubId = searchParams.get('github_id');
+        const avatar = searchParams.get('avatar');
+        const name = searchParams.get('name');
 
         if (error) {
           setStatus('error');
           setErrorMessage(getErrorMessage(error));
-          return;
-        }
-
-        // Handle demo mode
-        if (demo === 'true') {
-          // Simulate successful login with demo tokens
-          await login('demo-access-token', 'demo-refresh-token');
-          setStatus('success');
-          
-          // Redirect to dashboard after a brief success message
-          setTimeout(() => {
-            navigate('/dashboard', { replace: true });
-          }, 1500);
           return;
         }
 
@@ -62,16 +53,12 @@ export const AuthCallback: React.FC = () => {
         }
 
         // Login with tokens
-        console.log('🔑 Attempting login with tokens...');
         await login(token, refreshToken);
-        console.log('✅ Login successful!');
         setStatus('success');
         
-        // Redirect to dashboard after a brief success message
-        console.log('🔄 Redirecting to dashboard in 1.5s...');
+        // Redirect to onboarding (simplified flow)
         setTimeout(() => {
-          console.log('🏠 Navigating to dashboard...');
-          navigate('/dashboard', { replace: true });
+          navigate('/onboarding', { replace: true });
         }, 1500);
 
       } catch (error) {
@@ -83,11 +70,13 @@ export const AuthCallback: React.FC = () => {
         });
         setStatus('error');
         setErrorMessage('Failed to complete authentication');
+      } finally {
+        setIsProcessing(false);
       }
     };
 
     handleCallback();
-  }, [searchParams, login, navigate]);
+  }, [searchParams, login, navigate, isProcessing]);
 
   const getErrorMessage = (error: string): string => {
     switch (error) {

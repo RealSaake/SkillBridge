@@ -12,11 +12,22 @@
         }
     ],
     "hosting": {
-        "public": "public",
+        "public": "build",
         "ignore": [
             "firebase.json",
             "**/.*",
             "**/node_modules/**"
+        ],
+        "headers": [
+            {
+                "source": "/api/**",
+                "headers": [
+                    {
+                        "key": "Cache-Control",
+                        "value": "no-cache, no-store, must-revalidate"
+                    }
+                ]
+            }
         ],
         "rewrites": [
             {
@@ -26,6 +37,26 @@
             {
                 "source": "/api/auth/github/callback",
                 "function": "githubCallback"
+            },
+            {
+                "source": "/auth/me",
+                "function": "userAuth"
+            },
+            {
+                "source": "/api/auth/logout",
+                "function": "logout"
+            },
+            {
+                "source": "/profiles",
+                "function": "profiles"
+            },
+            {
+                "source": "/api/mcp/github-analysis",
+                "function": "mcpGithubAnalysis"
+            },
+            {
+                "source": "/api/mcp/skills-analysis",
+                "function": "mcpSkillsAnalysis"
             },
             {
                 "source": "/health",

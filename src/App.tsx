@@ -1,14 +1,30 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
+import { TraceProvider } from './contexts/TraceContext';
+import { LandingPage } from './components/LandingPage';
 import { LoginPage } from './components/auth/LoginPage';
 import { AuthCallback } from './components/auth/AuthCallback';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { OnboardingQuiz } from './components/OnboardingQuiz';
 import { ProfileSetup } from './components/auth/ProfileSetup';
 import { DevLanding } from './components/DevLanding';
 import Dashboard from './components/Dashboard';
-import { ErrorBoundary } from './components/ErrorBoundary';
+import PublicProfile from './components/PublicProfile';
+import ProfileSettings from './components/ProfileSettings';
+import { 
+  ErrorBoundary, 
+  DashboardErrorBoundary, 
+  AuthErrorBoundary,
+  GitHubDataErrorBoundary 
+} from './components/ErrorBoundary';
+import { logger } from './utils/logger';
+
+// Import mock API for development
+if (process.env.NODE_ENV === 'development') {
+  import('./services/MockPublicProfileAPI');
+}
 
 interface ThemeContextType {
   theme: 'light' | 'dark';
@@ -36,69 +52,176 @@ const queryClient = new QueryClient({
 });
 
 function App() {
-  console.log('🚀 App Component Loading...');
-  console.log('🌐 Window location:', window.location.href);
-  console.log('📦 Environment:', {
-    NODE_ENV: process.env.NODE_ENV,
-    REACT_APP_API_URL: process.env.REACT_APP_API_URL,
-    REACT_APP_ENVIRONMENT: process.env.REACT_APP_ENVIRONMENT
-  });
-  
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
+  // Initialize structured logging on app start
+  useEffect(() => {
+    // Generate initial trace ID and log app initialization
+    const appTraceId = logger.generateTraceId();
+    logger.setTraceId(appTraceId);
+
+    logger.info('SkillBridge application initialized', {
+      appVersion: '2.0.0',
+      environment: process.env.NODE_ENV,
+      apiUrl: process.env.REACT_APP_API_URL,
+      userAgent: navigator.userAgent,
+      viewport: {
+        width: window.innerWidth,
+        height: window.innerHeight
+      },
+      url: window.location.href,
+      referrer: document.referrer
+    }, 'App');
+
+    // Log any unhandled errors
+    const handleUnhandledError = (event: ErrorEvent) => {
+      logger.error('Unhandled JavaScript error', new Error(event.message), {
+        filename: event.filename,
+        lineno: event.lineno,
+        colno: event.colno,
+        stack: event.error?.stack
+      }, 'App');
+    };
+
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      logger.error('Unhandled promise rejection', 
+        event.reason instanceof Error ? event.reason : new Error(String(event.reason)), 
+        {
+          reason: String(event.reason)
+        }, 'App');
+    };
+
+    window.addEventListener('error', handleUnhandledError);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+    return () => {
+      window.removeEventListener('error', handleUnhandledError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, []);
 
   const toggleTheme = () => {
     setTheme(prev => prev === 'light' ? 'dark' : 'light');
   };
 
   return (
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <ThemeContext.Provider value={{ theme, toggleTheme }}>
-          <AuthProvider>
-          <Router>
-            <div className={`min-h-screen transition-colors duration-300 ${
-              theme === 'dark' 
-                ? 'bg-gray-900 text-white' 
-                : 'bg-gray-50 text-gray-900'
-            }`}>
-              <Routes>
-                {/* Public routes */}
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/auth/callback" element={<AuthCallback />} />
-                
-                {/* Protected routes */}
-                <Route 
-                  path="/profile/setup" 
-                  element={
-                    <ProtectedRoute>
-                      <ProfileSetup />
-                    </ProtectedRoute>
-                  } 
-                />
-                <Route 
-                  path="/dashboard" 
-                  element={
-                    <ProtectedRoute requireProfile={true}>
-                      <Dashboard />
-                    </ProtectedRoute>
-                  } 
-                />
-                
-                {/* Development routes - bypass auth */}
-                <Route path="/dev" element={<DevLanding />} />
-                <Route path="/dev-dashboard" element={<Dashboard />} />
-                
-                {/* Default redirect */}
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                
-                {/* Catch all route */}
-                <Route path="*" element={<Navigate to="/dashboard" replace />} />
-              </Routes>
-            </div>
-          </Router>
-        </AuthProvider>
-      </ThemeContext.Provider>
-    </QueryClientProvider>
+    <ErrorBoundary component="App">
+      <TraceProvider>
+        <QueryClientProvider client={queryClient}>
+          <ThemeContext.Provider value={{ theme, toggleTheme }}>
+            <AuthProvider>
+              <Router>
+                <div className={`min-h-screen transition-colors duration-300 ${theme === 'dark'
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-gray-50 text-gray-900'
+                  }`}>
+                  <Routes>
+                    {/* Public routes */}
+                    <Route path="/" element={<LandingPage />} />
+                    <Route 
+                      path="/login" 
+                      element={
+                        <AuthErrorBoundary>
+                          <LoginPage />
+                        </AuthErrorBoundary>
+                      } 
+                    />
+                    <Route 
+                      path="/auth/callback" 
+                      element={
+                        <AuthErrorBoundary>
+                          <AuthCallback />
+                        </AuthErrorBoundary>
+                      } 
+                    />
+                    
+                    {/* Public profile routes */}
+                    <Route 
+                      path="/profile/:username" 
+                      element={
+                        <ErrorBoundary component="PublicProfile">
+                          <PublicProfile />
+                        </ErrorBoundary>
+                      } 
+                    />
+                    <Route 
+                      path="/u/:username" 
+                      element={
+                        <ErrorBoundary component="PublicProfile">
+                          <PublicProfile />
+                        </ErrorBoundary>
+                      } 
+                    />
+
+                    {/* Protected routes with specialized error boundaries */}
+                    <Route
+                      path="/onboarding"
+                      element={
+                        <ProtectedRoute>
+                          <ErrorBoundary component="Onboarding">
+                            <OnboardingQuiz />
+                          </ErrorBoundary>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/profile/setup"
+                      element={
+                        <ProtectedRoute>
+                          <ErrorBoundary component="ProfileSetup">
+                            <ProfileSetup />
+                          </ErrorBoundary>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/dashboard"
+                      element={
+                        <ProtectedRoute requireProfile={true}>
+                          <DashboardErrorBoundary>
+                            <Dashboard />
+                          </DashboardErrorBoundary>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/settings/profile"
+                      element={
+                        <ProtectedRoute requireProfile={true}>
+                          <ErrorBoundary component="ProfileSettings">
+                            <ProfileSettings />
+                          </ErrorBoundary>
+                        </ProtectedRoute>
+                      }
+                    />
+
+                    {/* Development routes - bypass auth */}
+                    <Route 
+                      path="/dev" 
+                      element={
+                        <ErrorBoundary component="DevLanding">
+                          <DevLanding />
+                        </ErrorBoundary>
+                      } 
+                    />
+                    <Route 
+                      path="/dev-dashboard" 
+                      element={
+                        <DashboardErrorBoundary>
+                          <Dashboard />
+                        </DashboardErrorBoundary>
+                      } 
+                    />
+
+                    {/* Catch all route */}
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
+                </div>
+              </Router>
+            </AuthProvider>
+          </ThemeContext.Provider>
+        </QueryClientProvider>
+      </TraceProvider>
     </ErrorBoundary>
   );
 }

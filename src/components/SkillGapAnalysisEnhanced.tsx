@@ -6,7 +6,8 @@ import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
 import { Skeleton } from './ui/skeleton';
 import { useTheme } from '../App';
-import { useSkillGaps, useGitHubRepos } from '../hooks/useMCP';
+import useGitHubData from '../hooks/useGitHubData';
+import { usePersonalizedSkillGapAnalysis } from '../hooks/usePersonalizedMCP';
 import type { SkillGap } from '../types/mcp-types';
 
 interface SkillGapAnalysisEnhancedProps {
@@ -23,13 +24,16 @@ export function SkillGapAnalysisEnhanced({
   const [isExpanded, setIsExpanded] = useState(true);
   const { theme } = useTheme();
 
-  const { data: githubRepos, loading: reposLoading } = useGitHubRepos(username);
+  const [githubState, githubActions] = useGitHubData();
+  const { repositories: githubRepos, isLoadingRepositories: reposLoading } = githubState;
+  
+  const skillGapsResult = usePersonalizedSkillGapAnalysis(username, targetRole);
   const { 
     data: skillGaps, 
     loading: gapsLoading, 
     error, 
     refetch 
-  } = useSkillGaps(githubRepos || [], targetRole);
+  } = skillGapsResult || { data: null, loading: false, error: null, refetch: async () => {} };
 
   const loading = reposLoading || gapsLoading;
 
@@ -116,7 +120,7 @@ export function SkillGapAnalysisEnhanced({
               <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
               <h3 className="text-lg mb-2">Unable to Analyze Skills</h3>
               <p className={`text-sm mb-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                {error.message}
+                {error}
               </p>
               <Button onClick={refetch} variant="outline">
                 <RefreshCw className="w-4 h-4 mr-2" />
@@ -159,7 +163,7 @@ export function SkillGapAnalysisEnhanced({
   }
 
   // Group skills by category
-  const skillsByCategory = skillGaps.reduce((acc, skill) => {
+  const skillsByCategory = skillGaps.reduce((acc: Record<string, SkillGap[]>, skill: SkillGap) => {
     const category = skill.category || 'General';
     if (!acc[category]) {
       acc[category] = [];
@@ -170,8 +174,8 @@ export function SkillGapAnalysisEnhanced({
 
   // Find priority skills (urgent gaps)
   const prioritySkills = skillGaps
-    .filter(skill => getGapUrgency(skill.currentLevel, skill.targetLevel, skill.importance) === 'urgent')
-    .sort((a, b) => (b.targetLevel - b.currentLevel) - (a.targetLevel - a.currentLevel))
+    .filter((skill: SkillGap) => getGapUrgency(skill.currentLevel, skill.targetLevel, skill.importance) === 'urgent')
+    .sort((a: SkillGap, b: SkillGap) => (b.targetLevel - b.currentLevel) - (a.targetLevel - a.currentLevel))
     .slice(0, 3);
 
   return (
@@ -217,7 +221,7 @@ export function SkillGapAnalysisEnhanced({
                     These skills have the largest gaps and highest importance for your target role.
                   </p>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {prioritySkills.map((skill) => (
+                    {prioritySkills.map((skill: SkillGap) => (
                       <Badge key={skill.skill} variant="destructive" className="text-xs">
                         {skill.skill} ({skill.targetLevel - skill.currentLevel}% gap)
                       </Badge>
@@ -229,11 +233,11 @@ export function SkillGapAnalysisEnhanced({
           )}
 
           {/* Skill Categories */}
-          {Object.entries(skillsByCategory).map(([category, skills]) => (
+          {(Object.entries(skillsByCategory) as [string, SkillGap[]][]).map(([category, skills]) => (
             <div key={category}>
               <h4 className="text-sm font-medium mb-3">{category}</h4>
               <div className="space-y-3">
-                {skills.map((skill) => {
+                {skills.map((skill: SkillGap) => {
                   const urgency = getGapUrgency(skill.currentLevel, skill.targetLevel, skill.importance);
                   const gap = skill.targetLevel - skill.currentLevel;
                   
@@ -293,7 +297,7 @@ export function SkillGapAnalysisEnhanced({
                           <div className="mt-2">
                             <p className="text-xs font-medium mb-1">Recommended Resources:</p>
                             <div className="flex flex-wrap gap-1">
-                              {skill.learningResources.slice(0, 3).map((resource, index) => (
+                              {skill.learningResources.slice(0, 3).map((resource: string, index: number) => (
                                 <Badge key={index} variant="outline" className="text-xs">
                                   {resource}
                                 </Badge>
@@ -335,7 +339,7 @@ export function SkillGapAnalysisEnhanced({
                   Avg Gap:
                 </span>
                 <p className="text-lg font-medium">
-                  {Math.round(skillGaps.reduce((acc, skill) => acc + (skill.targetLevel - skill.currentLevel), 0) / skillGaps.length)}%
+                  {Math.round(skillGaps.reduce((acc: number, skill: SkillGap) => acc + (skill.targetLevel - skill.currentLevel), 0) / skillGaps.length)}%
                 </p>
               </div>
               <div>

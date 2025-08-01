@@ -6,7 +6,7 @@ import { Badge } from './ui/badge';
 import { Progress } from './ui/progress';
 import { Skeleton } from './ui/skeleton';
 import { useTheme } from '../App';
-import { useLearningRoadmap } from '../hooks/useMCP';
+import { usePersonalizedLearningRoadmap } from '../hooks/usePersonalizedMCP';
 // import type { LearningRoadmap } from '../types/mcp-types';
 
 interface LearningRoadmapEnhancedProps {
@@ -29,7 +29,7 @@ export function LearningRoadmapEnhanced({
     loading, 
     error, 
     refetch 
-  } = useLearningRoadmap(targetRole, currentSkills);
+  } = usePersonalizedLearningRoadmap(targetRole, currentSkills);
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -138,7 +138,7 @@ export function LearningRoadmapEnhanced({
               <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
               <h3 className="text-lg mb-2">Unable to Load Roadmap</h3>
               <p className={`text-sm mb-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                {error.message}
+                {typeof error === 'string' ? error : (error as any)?.message || 'An error occurred'}
               </p>
               <Button onClick={refetch} variant="outline">
                 <RefreshCw className="w-4 h-4 mr-2" />
@@ -155,12 +155,12 @@ export function LearningRoadmapEnhanced({
     return null;
   }
 
-  const currentWeek = roadmapData.weeks.find(week => week.week === selectedWeek);
-  const totalItems = roadmapData.weeks.reduce((acc, week) => acc + week.items.length, 0);
-  const completedItems = roadmapData.weeks.reduce((acc, week) => 
-    acc + week.items.filter(item => item.status === 'completed').length, 0);
-  const inProgressItems = roadmapData.weeks.reduce((acc, week) => 
-    acc + week.items.filter(item => item.status === 'in-progress').length, 0);
+  const currentWeek = roadmapData.weeks.find((week: any) => week.week === selectedWeek);
+  const totalItems = roadmapData.weeks.reduce((acc: number, week: any) => acc + week.items.length, 0);
+  const completedItems = roadmapData.weeks.reduce((acc: number, week: any) => 
+    acc + week.items.filter((item: any) => item.status === 'completed').length, 0);
+  const inProgressItems = roadmapData.weeks.reduce((acc: number, week: any) => 
+    acc + week.items.filter((item: any) => item.status === 'in-progress').length, 0);
 
   return (
     <Card className={`transition-colors duration-300 ${
@@ -221,7 +221,7 @@ export function LearningRoadmapEnhanced({
           <div>
             <h4 className="text-sm mb-3">{roadmapData.estimatedWeeks}-Week Learning Plan</h4>
             <div className="flex space-x-2 mb-4 overflow-x-auto">
-              {roadmapData.weeks.map((week) => (
+              {roadmapData.weeks.map((week: any) => (
                 <Button
                   key={week.week}
                   variant={selectedWeek === week.week ? "default" : "outline"}
@@ -246,7 +246,7 @@ export function LearningRoadmapEnhanced({
               </div>
 
               <div className="space-y-3">
-                {currentWeek.items.map((item) => (
+                {currentWeek.items.map((item: any) => (
                   <div key={item.id} className={`p-4 rounded-lg border ${
                     theme === 'dark' ? 'border-gray-600 bg-gray-750' : 'border-gray-200 bg-gray-50'
                   }`}>
@@ -357,7 +357,7 @@ export function LearningRoadmapEnhanced({
             <div className={`p-3 rounded-lg ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'}`}>
               <h4 className="text-sm mb-2">Skills You'll Learn</h4>
               <div className="flex flex-wrap gap-2">
-                {roadmapData.skillsFocus.map((skill, index) => (
+                {roadmapData.skillsFocus.map((skill: any, index: number) => (
                   <Badge key={index} variant="secondary" className="text-xs">
                     {skill}
                   </Badge>

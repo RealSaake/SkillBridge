@@ -1,158 +1,109 @@
 # SkillBridge
 
-SkillBridge is an AI-powered career development platform that provides personalized guidance for developers and tech professionals. It analyzes your GitHub activity, identifies skill gaps, and provides tailored learning roadmaps to help you achieve your career goals.
+AI-powered career development platform that helps developers advance their careers through personalized guidance, skill assessment, and GitHub portfolio analysis.
 
-## 🚀 Quick Start
+## 🚀 Features
 
-### Prerequisites
-- Node.js 18+
-- GitHub OAuth App (✅ Already configured)
+- **GitHub OAuth Integration** - Secure authentication with GitHub
+- **Portfolio Analysis** - AI-powered analysis of your GitHub repositories
+- **Career Roadmaps** - Personalized learning paths for different tech roles
+- **Skills Assessment** - Identify skill gaps and get targeted recommendations
+- **Resume Enhancement** - AI-powered resume optimization suggestions
+- **MCP Integration** - Model Context Protocol for extensible AI services
 
-### Installation
+## 🛠️ Tech Stack
 
-1. **Clone and install dependencies:**
-```bash
-git clone <repository-url>
-cd SkillBridge
-npm install
-```
+### Frontend
+- **React** with TypeScript
+- **Tailwind CSS** for styling
+- **Vercel** for deployment
 
-2. **Setup backend:**
-```bash
-cd server
-npm install
-```
+### Backend
+- **Firebase Functions** for serverless API
+- **Firebase Hosting** for static assets
+- **Node.js** with TypeScript
 
-3. **Configure environment variables:**
-   
-   Update `server/.env` with your production domains:
-   ```bash
-   GITHUB_CLIENT_ID=your_github_client_id
-   GITHUB_CLIENT_SECRET=your_github_client_secret
-   FRONTEND_URL=https://skillbridgev1.vercel.app
-   API_URL=https://skillbridge-production-ea3f.up.railway.app
-   NODE_ENV=production
-   ```
-
-   Update `.env` in root:
-   ```bash
-   REACT_APP_API_URL=https://skillbridge-production-ea3f.up.railway.app
-   ```
-
-4. **Deploy to production:**
-```bash
-# Build for production
-npm run build:production
-
-# Deploy backend to Railway
-cd server && railway up
-
-# Deploy frontend to Vercel  
-vercel --prod
-```
-
-Visit your Vercel domain to access the live application.
+### AI Services
+- **MCP Servers** for career guidance
+- **GitHub API** for repository analysis
 
 ## 🏗️ Architecture
 
-### Frontend
-- **React 18** with TypeScript
-- **Authentication** via GitHub OAuth with JWT tokens
-- **Personalized Dashboard** with user-specific insights
-- **MCP Integration** for AI-powered recommendations
+```
+Frontend (Vercel) → API Proxy → Firebase Functions → MCP Servers
+                                      ↓
+                              Firebase Hosting
+```
 
-### Backend
-- **Express.js** API with comprehensive security
-- **GitHub OAuth** authentication with JWT tokens
-- **RESTful API** with rate limiting and CORS protection
-- **MCP Integration** for AI-powered career guidance
+## 🚀 Deployment
 
-### Key Features
-- **GitHub Analysis**: Real-time portfolio analysis
-- **Skill Gap Detection**: AI-powered skill assessment
-- **Personalized Roadmaps**: Custom learning paths
-- **Resume Analysis**: Intelligent resume feedback
-- **Progress Tracking**: Career development monitoring
+### Frontend (Vercel)
+- Automatically deploys from main branch
+- Environment variables configured in Vercel dashboard
+
+### Backend (Firebase)
+```bash
+# Deploy functions and hosting
+firebase deploy
+
+# Deploy only functions
+firebase deploy --only functions
+
+# Deploy only hosting
+firebase deploy --only hosting
+```
 
 ## 🔧 Development
 
-### Available Scripts
-```bash
-npm start          # Start development server
-npm test           # Run test suite
-npm run build      # Build for production
-npm run lint       # Run linter
-```
+### Prerequisites
+- Node.js 18+
+- Firebase CLI
+- Vercel CLI (optional)
 
-### Backend Scripts
+### Setup
 ```bash
-cd server
-npm run dev        # Start development server
-npm run build      # Build TypeScript
-npm start          # Start production server
+# Install dependencies
+npm install
+
+# Install function dependencies
+cd functions && npm install
+
+# Start development server
+npm start
+
+# Deploy to Firebase
+firebase deploy
 ```
 
 ## 📁 Project Structure
 
 ```
-├── src/
-│   ├── components/     # React components
-│   ├── contexts/       # React contexts (auth, theme)
-│   ├── hooks/          # Custom hooks (MCP integration)
-│   ├── types/          # TypeScript definitions
-│   └── __tests__/      # Test files
-├── server/
-│   ├── src/
-│   │   ├── routes/     # API endpoints
-│   │   ├── middleware/ # Security & auth middleware
-│   │   └── config/     # Configuration files
-│   └── prisma/         # Database schema
-├── mcp-servers/        # MCP server implementations
-└── docs/               # Documentation and summaries
+├── src/                    # React frontend source
+├── functions/              # Firebase Functions
+├── mcp-servers/           # MCP server implementations
+├── public/                # Static assets
+├── firebase.json          # Firebase configuration
+├── vercel.json           # Vercel configuration
+└── package.json          # Frontend dependencies
 ```
 
-## 🔐 Security
+## 🌐 Live URLs
 
-- **GitHub OAuth**: Secure authentication via GitHub
-- **JWT Tokens**: Access and refresh token management
-- **Rate Limiting**: Protection against abuse (100 req/15min)
-- **Helmet.js**: Security headers and protection
-- **CORS Protection**: Secure cross-origin requests
+- **Frontend**: https://skillbridgev1.vercel.app
+- **Backend**: https://skillbridge-career-dev.web.app
 
-## 🧪 Testing
+## 🔑 Environment Variables
 
-The application includes comprehensive testing:
-```bash
-npm test           # Frontend tests
-cd server && npm test  # Backend tests (when implemented)
+### Frontend (.env)
+```
+REACT_APP_API_URL=https://skillbridge-career-dev.web.app
+REACT_APP_ENVIRONMENT=production
 ```
 
-Current test coverage focuses on component functionality and MCP integration.
+### Firebase Functions
+- `GITHUB_CLIENT_ID` - GitHub OAuth client ID
+- `GITHUB_CLIENT_SECRET` - GitHub OAuth client secret
 
-## 📊 Performance
+## 📝 License
 
-- **API Response Time**: <200ms average
-- **Authentication Success**: 99.9%
-- **Cache Hit Rate**: 75% for returning users
-- **Mobile Responsive**: 100% compatible
-
-## 🚀 Deployment
-
-The application is production-ready with:
-- GitHub OAuth integration
-- Environment configuration
-- Security middleware (Helmet, CORS, Rate limiting)
-- MCP server integration
-- Responsive React frontend
-
-### Environment Variables Required:
-- `GITHUB_CLIENT_ID` - Your GitHub OAuth app client ID
-- `GITHUB_CLIENT_SECRET` - Your GitHub OAuth app client secret
-- `FRONTEND_URL` - Frontend URL (for OAuth redirects)
-- `REACT_APP_API_URL` - Backend API URL
-
-See deployment scripts in `/scripts` directory for production setup.
-
----
-
-**SkillBridge** - Empowering developers with AI-driven career guidance.
+MIT License - see LICENSE file for details

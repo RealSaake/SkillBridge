@@ -8,6 +8,29 @@ import { Alert, AlertDescription } from './ui/alert';
 import { useTheme } from '../App';
 import { useResumeAnalysis } from '../hooks/useMCP';
 
+interface ResumeSection {
+  name: string;
+  status: 'excellent' | 'good' | 'needs-improvement' | 'missing';
+  score: number;
+  feedback: string;
+}
+
+interface ResumeSuggestion {
+  type: 'good' | 'warning' | 'error';
+  text: string;
+  title: string;
+  description: string;
+}
+
+interface ResumeAnalysisData {
+  overall: number;
+  sections: ResumeSection[];
+  recommendations: string[];
+  suggestions: ResumeSuggestion[];
+  atsScore: number;
+  keywordMatch: number;
+}
+
 interface ResumeReviewEnhancedProps {
   resumeContent?: string;
   onUpload?: (file: File) => void;
@@ -189,7 +212,7 @@ export function ResumeReviewEnhanced({
               <div>
                 <h4 className="text-sm mb-3">Section Analysis</h4>
                 <div className="space-y-2">
-                  {resumeData.sections.map((section) => (
+                  {resumeData.sections.map((section: ResumeSection) => (
                     <div key={section.name} className={`flex items-center justify-between p-3 rounded-lg ${
                       theme === 'dark' ? 'bg-gray-700' : 'bg-gray-50'
                     }`}>
@@ -214,7 +237,7 @@ export function ResumeReviewEnhanced({
               <div>
                 <h4 className="text-sm mb-3">AI Recommendations</h4>
                 <div className="space-y-3">
-                  {resumeData.suggestions.map((suggestion, index) => (
+                  {resumeData.suggestions.map((suggestion: ResumeSuggestion, index: number) => (
                     <div key={index} className={`p-3 rounded-lg border-l-4 ${
                       suggestion.type === 'good' 
                         ? 'border-green-500 bg-green-50 dark:bg-green-900/10'

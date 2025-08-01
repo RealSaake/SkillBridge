@@ -13,11 +13,12 @@ jest.mock('../hooks/usePersonalizedMCP', () => ({
   clearMCPCache: jest.fn()
 }));
 
-jest.mock('../hooks/useMCP', () => ({
-  useGitHubActivity: jest.fn(),
-  useGitHubRepos: jest.fn(),
-  useSkillGaps: jest.fn()
-}));
+const mockUseGitHubActivity = jest.fn();
+const mockUseGitHubRepos = jest.fn();
+const mockUseSkillGaps = jest.fn();
+
+// Note: useMCP hook was removed as part of mock data cleanup
+// Tests now use real MCP integration through useGitHubData and usePersonalizedMCP hooks
 
 // Mock auth context
 const mockUser = {
@@ -85,6 +86,79 @@ const TestWrapper = ({ children }: { children: React.ReactNode }) => {
 describe('Personalized MCP Integration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    // Set up default mock implementations
+    mockUseGitHubRepos.mockReturnValue({
+      data: {
+        repositories: [
+          { name: 'awesome-project', language: 'TypeScript', stars: 15, forks: 3 }
+        ],
+        stats: { totalRepos: 25, totalStars: 156, languages: { TypeScript: 8 } }
+      },
+      loading: false,
+      error: null,
+      refetch: jest.fn()
+    });
+
+    mockUseSkillGaps.mockReturnValue({
+      data: {
+        gaps: [
+          {
+            skill: 'Docker',
+            importance: 'high',
+            description: 'Essential for containerization',
+            resources: ['https://docs.docker.com/get-started/']
+          }
+        ],
+        recommendations: ['Focus on containerization skills']
+      },
+      loading: false,
+      error: null,
+      refetch: jest.fn()
+    });
+
+    mockUsePersonalizedGitHubAnalysis.mockReturnValue({
+      data: {
+        profile: { login: 'testuser', name: 'Test User' },
+        repositories: [
+          { name: 'awesome-project', language: 'TypeScript', stars: 15 }
+        ],
+        activity: {
+          totalStars: 42,
+          recentlyActiveRepos: 5,
+          contributionStreak: 7
+        },
+        personalizedInsights: {
+          roleAlignment: 'Analysis tailored for Full Stack Developer role',
+          experienceMatch: 'Suitable for intermediate level',
+          skillGaps: ['Docker', 'AWS', 'Testing'],
+          recommendations: [
+            'Consider projects that align with your goal: Learn React',
+            'Focus on backend development to balance your skills'
+          ]
+        }
+      },
+      loading: false,
+      error: null,
+      refetch: jest.fn()
+    });
+
+    mockUsePersonalizedSkillGapAnalysis.mockReturnValue({
+      data: {
+        gaps: [
+          {
+            skill: 'Docker',
+            importance: 'high',
+            description: 'Essential for containerization',
+            resources: ['https://docs.docker.com/get-started/']
+          }
+        ],
+        recommendations: ['Focus on containerization skills']
+      },
+      loading: false,
+      error: null,
+      refetch: jest.fn()
+    });
   });
 
   describe('usePersonalizedGitHubAnalysis Hook', () => {

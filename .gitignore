@@ -1,11 +1,10 @@
 # Dependencies
 node_modules/
-server/node_modules/
+functions/node_modules/
 
 # Production builds
 build/
 dist/
-server/dist/
 
 # Environment variables
 .env
@@ -13,7 +12,6 @@ server/dist/
 .env.development.local
 .env.test.local
 .env.production.local
-server/.env
 
 # Logs
 npm-debug.log*
@@ -96,13 +94,13 @@ temp/
 ehthumbs.db
 Thumbs.db
 
-# Database
-*.sqlite
-*.db
-
-# Prisma
-server/prisma/migrations/
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
 
 # MCP server logs
 mcp-servers/*.log
+
+# Deployment
 .vercel

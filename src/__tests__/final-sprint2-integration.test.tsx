@@ -50,6 +50,59 @@ const cleanupMCP = async (): Promise<void> => {
 
 // Test wrapper is now handled by test-utils
 
+// Mock AuthContext with a proper user for testing
+const mockUser = {
+  uid: 'test-user-123',
+  username: 'testuser',
+  name: 'Test User',
+  email: 'test@example.com',
+  avatarUrl: 'https://github.com/testuser.png',
+  location: 'Test City',
+  publicRepos: 25,
+  followers: 50,
+  profile: {
+    targetRole: 'fullstack',
+    currentRole: 'frontend',
+    experienceLevel: 'intermediate',
+    onboardingCompleted: true
+  }
+};
+
+// Mock secure data hooks to prevent session integrity failures in tests
+jest.mock('../hooks/useSecureData', () => ({
+  useSecureGitHubRepositories: () => ({
+    data: [
+      { name: 'test-repo', language: 'TypeScript', stars: 10, forks: 2 }
+    ],
+    loading: false,
+    error: null,
+    refresh: jest.fn()
+  }),
+  useSecureUserStats: () => ({
+    data: {
+      totalRepos: 25,
+      totalStars: 156,
+      languages: { TypeScript: 8, JavaScript: 5 }
+    },
+    loading: false,
+    error: null,
+    refresh: jest.fn()
+  }),
+  useSessionValidation: () => ({
+    isValid: true
+  })
+}));
+
+jest.mock('../contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: mockUser,
+    logout: jest.fn(),
+    loading: false,
+    error: null
+  }),
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>
+}));
+
 describe('[FINAL] Sprint 2: Full Functional MCP Flow Validation', () => {
   beforeAll(async () => {
     await initializeMCP();

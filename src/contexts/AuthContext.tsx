@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
+import { userDataIsolation, type GitHubUserData } from '../utils/userDataIsolation';
 
 interface User {
   id: string;
@@ -6,9 +7,18 @@ interface User {
   email: string;
   avatarUrl?: string;
   name?: string;
+  bio?: string;
+  location?: string;
+  company?: string;
+  blog?: string;
+  publicRepos?: number;
+  followers?: number;
+  following?: number;
   profile?: UserProfile;
   skills?: UserSkill[];
   createdAt: string;
+  githubCreatedAt?: string;
+  githubUpdatedAt?: string;
 }
 
 interface UserProfile {
@@ -17,6 +27,11 @@ interface UserProfile {
   targetRole?: string;
   experienceLevel?: string;
   careerGoals: string[];
+  primaryGoals?: string[];
+  techStack?: string[];
+  learningStyle?: string;
+  timeCommitment?: string;
+  completedOnboarding?: boolean;
   bio?: string;
   location?: string;
   website?: string;
@@ -94,48 +109,105 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return response;
   };
 
-  // Fetch current user
+  // Fetch current user with secure data isolation
   const fetchUser = useCallback(async (): Promise<User | null> => {
     try {
-      const response = await apiCall('/auth/me');
+      const accessToken = getAccessToken();
+      const refreshTokenValue = getRefreshToken();
       
-      if (response.ok) {
-        const userData = await response.json();
-        return userData;
-      } else if (response.status === 401) {
-        // Token invalid, try refresh
-        const refreshSuccess = await refreshToken();
-        if (refreshSuccess) {
-          // Retry fetching user
-          const retryResponse = await apiCall('/auth/me');
-          if (retryResponse.ok) {
-            return await retryResponse.json();
-          }
-        }
+      if (!accessToken || !refreshTokenValue) {
+        return null;
+      }
+
+      // Initialize secure session
+      const sessionInitialized = userDataIsolation.initializeSession(accessToken, refreshTokenValue);
+      if (!sessionInitialized) {
+        console.warn('Failed to initialize secure session');
+        clearTokens();
+        return null;
+      }
+
+      // Validate session integrity
+      if (!userDataIsolation.validateSessionIntegrity()) {
+        console.warn('Session integrity check failed');
+        clearTokens();
+        return null;
+      }
+
+      // Fetch user profile through secure isolation layer
+      const githubUserData = await userDataIsolation.fetchUserProfile();
+      
+      if (!githubUserData) {
+        console.warn('No GitHub user data returned');
+        clearTokens();
+        return null;
       }
       
-      return null;
+      // Convert GitHub data to our User format
+      const userData: User = {
+        id: githubUserData.id.toString(),
+        username: githubUserData.login,
+        email: githubUserData.email || `${githubUserData.login}@github.local`,
+        name: githubUserData.name || githubUserData.login,
+        avatarUrl: githubUserData.avatar_url,
+        bio: githubUserData.bio || undefined,
+        location: githubUserData.location || undefined,
+        company: githubUserData.company || undefined,
+        blog: githubUserData.blog || undefined,
+        publicRepos: githubUserData.public_repos,
+        followers: githubUserData.followers,
+        following: githubUserData.following,
+        profile: undefined, // Will be loaded separately
+        skills: [],
+        createdAt: githubUserData.created_at,
+        githubCreatedAt: githubUserData.created_at,
+        githubUpdatedAt: githubUserData.updated_at
+      };
+
+      return userData;
     } catch (error) {
       console.error('Error fetching user:', error);
+      
+      // Clear session on any error to prevent data contamination
+      userDataIsolation.clearSession();
+      clearTokens();
+      
       return null;
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Login function
+  // Login function with secure session initialization
   const login = async (accessToken: string, refreshTokenValue: string): Promise<void> => {
-    setTokens(accessToken, refreshTokenValue);
-    
-    const userData = await fetchUser();
-    if (userData) {
-      setUser(userData);
-    } else {
+    try {
+      // Validate token format before storing
+      if (!accessToken || !refreshTokenValue) {
+        throw new Error('Missing authentication tokens');
+      }
+      
+      if (!accessToken.startsWith('github_') || !refreshTokenValue.startsWith('refresh_')) {
+        throw new Error('Invalid token format');
+      }
+
+      setTokens(accessToken, refreshTokenValue);
+      
+      const userData = await fetchUser();
+      if (userData) {
+        setUser(userData);
+        console.log('✅ User login successful:', userData.username);
+      } else {
+        clearTokens();
+        userDataIsolation.clearSession();
+        throw new Error('Failed to fetch user data');
+      }
+    } catch (error) {
+      console.error('❌ Login error:', error);
       clearTokens();
-      throw new Error('Failed to fetch user data');
+      userDataIsolation.clearSession();
+      throw error;
     }
   };
 
-  // Logout function
+  // Logout function with secure session cleanup
   const logout = async (): Promise<void> => {
     try {
       const refreshTokenValue = getRefreshToken();
@@ -149,8 +221,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
+      // Clear all session data securely
+      userDataIsolation.clearSession();
       clearTokens();
       setUser(null);
+      
+      // Clear any cached data
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Redirect to login page
+      window.location.href = '/login';
     }
   };
 

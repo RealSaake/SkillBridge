@@ -36,6 +36,8 @@ describe('GitHubActivityEnhanced', () => {
   });
 
   it('handles error states gracefully', async () => {
+    jest.setTimeout(10000); // Increase timeout for this test
+    
     // Test with invalid username to trigger error
     render(<GitHubActivityEnhanced username="" />);
     

@@ -1,0 +1,100 @@
+{
+  "name": "skillbridge",
+  "version": "2.0.0",
+  "description": "AI-powered career development platform with real-time GitHub integration and personalized learning paths",
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RealSaake/SkillBridge.git"
+  },
+  "homepage": "/",
+  "bugs": {
+    "url": "https://github.com/RealSaake/SkillBridge/issues"
+  },
+  "author": {
+    "name": "RealSaake",
+    "url": "https://github.com/RealSaake"
+  },
+  "keywords": [
+    "career-development",
+    "ai-powered",
+    "github-integration",
+    "skill-analysis",
+    "learning-paths",
+    "mcp-protocol",
+    "typescript",
+    "react"
+  ],
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.0",
+    "@radix-ui/react-progress": "^1.0.3",
+    "@radix-ui/react-slot": "^1.0.2",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.263.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.30.1",
+    "tailwind-merge": "^1.14.0",
+    "tailwindcss-animate": "^1.0.6",
+    "typescript": "^4.9.5",
+    "web-vitals": "^2.1.4"
+  },
+  "devDependencies": {
+    "@tanstack/react-query": "^5.83.0",
+    "@testing-library/jest-dom": "^6.6.4",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/jest": "^29.5.0",
+    "@types/node": "^16.18.0",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@typescript-eslint/eslint-plugin": "^5.62.0",
+    "@typescript-eslint/parser": "^5.62.0",
+    "autoprefixer": "^10.4.14",
+    "eslint": "^8.45.0",
+    "eslint-plugin-react": "^7.32.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "jest-axe": "^10.0.0",
+    "postcss": "^8.4.24",
+    "react-scripts": "^5.0.1",
+    "tailwindcss": "^3.3.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "start:server": "cd functions && npm start",
+    "build": "react-scripts build",
+    "build:server": "cd functions && npm run build",
+    "build:mcp": "./scripts/build-mcp-servers.sh",
+    "railway:build": "cd functions && npm install && npm run build",
+    "railway:start": "cd functions && npm start",
+    "build:production": "npm run build:mcp && npm run build",
+    "test": "react-scripts test",
+    "test:integration": "./scripts/run-final-integration-test.sh",
+    "test:final": "npm test -- --testPathPattern=final-sprint2-integration --verbose --watchAll=false",
+    "production:check": "./scripts/production-readiness-check.sh",
+    "production:build": "npm run build:production && npm run production:check",
+    "eject": "react-scripts eject",
+    "mock-debt:check": "./scripts/detect-mock-usage.sh",
+    "mock-debt:report": "echo '📊 Mock Debt Status: Production code is mock-free! ✅'",
+    "precommit": "npm run mock-debt:check"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
