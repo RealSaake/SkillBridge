@@ -1,6 +1,7 @@
 import React, { ReactElement } from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { BrowserRouter } from 'react-router-dom';
 import { ThemeContext } from '../App';
 import { AuthProvider } from '../contexts/AuthContext';
 
@@ -23,13 +24,15 @@ const TestProviders: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   };
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeContext.Provider value={themeValue}>
-        <AuthProvider>
-          {children}
-        </AuthProvider>
-      </ThemeContext.Provider>
-    </QueryClientProvider>
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <ThemeContext.Provider value={themeValue}>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </ThemeContext.Provider>
+      </QueryClientProvider>
+    </BrowserRouter>
   );
 };
 

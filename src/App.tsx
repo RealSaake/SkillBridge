@@ -21,10 +21,7 @@ import {
 } from './components/ErrorBoundary';
 import { logger } from './utils/logger';
 
-// Import mock API for development
-if (process.env.NODE_ENV === 'development') {
-  import('./services/MockPublicProfileAPI');
-}
+
 
 interface ThemeContextType {
   theme: 'light' | 'dark';

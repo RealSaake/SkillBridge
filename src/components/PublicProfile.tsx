@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useAnalytics, usePageView, useProfileAnalytics } from '../hooks/useAnalytics';
 import { 
   User, 
   MapPin, 
@@ -110,6 +111,12 @@ const PublicProfile: React.FC<PublicProfileProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [sharing, setSharing] = useState(false);
   
+  const { trackEvent, trackProfileView, trackProfileShare } = useAnalytics();
+  
+  // Track page view and profile analytics
+  usePageView('public_profile', { profileUsername: username });
+  const { analytics: profileAnalytics } = useProfileAnalytics(username || '', '30d');
+  
   const traceId = React.useMemo(() => 
     `public-profile-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, 
     []
@@ -149,6 +156,7 @@ const PublicProfile: React.FC<PublicProfileProps> = ({
       
       // Track profile view analytics
       await trackProfileView(profileUsername);
+      await trackProfileViewAPI(profileUsername);
       
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
@@ -162,7 +170,7 @@ const PublicProfile: React.FC<PublicProfileProps> = ({
     }
   };
 
-  const trackProfileView = async (profileUsername: string) => {
+  const trackProfileViewAPI = async (profileUsername: string) => {
     try {
       await fetch('/api/analytics/profile-view', {
         method: 'POST',
@@ -194,10 +202,12 @@ const PublicProfile: React.FC<PublicProfileProps> = ({
       if (navigator.share && navigator.canShare(shareData)) {
         await navigator.share(shareData);
         logUserAction('profile_shared_native', { username: profileData.username, traceId });
+        await trackProfileShare(profileData.username, 'native');
       } else {
         // Fallback to clipboard
         await navigator.clipboard.writeText(window.location.href);
         logUserAction('profile_shared_clipboard', { username: profileData.username, traceId });
+        await trackProfileShare(profileData.username, 'clipboard');
         // You could show a toast notification here
       }
     } catch (err) {

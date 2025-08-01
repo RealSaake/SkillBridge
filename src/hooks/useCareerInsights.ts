@@ -66,12 +66,9 @@ export const useCareerInsights = ({
           type: 'skill_gap',
           title: 'Skill Gap Analysis',
           description: skillGapData.value.summary || 'Analysis of your current skills vs target role requirements',
-          confidence: skillGapData.value.confidence || 75,
+          confidence: skillGapData.value.confidence || 0,
           actionable: true,
-          resources: (skillGapData.value.recommendations?.slice(0, 3) || []).map(rec => ({
-            ...rec,
-            type: rec.type as 'course' | 'article' | 'video' | 'practice'
-          }))
+          resources: []
         });
       }
 
@@ -146,23 +143,12 @@ export const useCareerInsights = ({
 
   const fetchSkillGapAnalysis = async (role: string, username?: string) => {
     try {
-      // This would integrate with the portfolio-analyzer MCP server
-      // For now, return mock data that matches the expected structure
+      // TODO: Integrate with MCP portfolio-analyzer server
+      // For now, return empty data structure to avoid mock data
       return {
-        summary: `Based on your profile, you have 70% of the skills needed for ${role.replace('-', ' ')}`,
-        confidence: 75,
-        recommendations: [
-          {
-            title: 'Learn React Hooks',
-            url: 'https://react.dev/reference/react',
-            type: 'course'
-          },
-          {
-            title: 'Master TypeScript',
-            url: 'https://www.typescriptlang.org/docs/',
-            type: 'article'
-          }
-        ]
+        summary: `Skill analysis for ${role.replace('-', ' ')} role requires GitHub connection`,
+        confidence: 0,
+        recommendations: []
       };
     } catch (error) {
       logError('Error fetching skill gap analysis', error as Error, {

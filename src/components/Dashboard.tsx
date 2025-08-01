@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useAnalytics, usePageView } from '../hooks/useAnalytics';
 import { useTheme } from '../App';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -11,6 +12,7 @@ import GitHubDataDisplay from './GitHubDataDisplay';
 import { useSecureGitHubRepositories, useSecureUserStats, useSessionValidation } from '../hooks/useSecureData';
 import { useCareerInsights } from '../hooks/useCareerInsights';
 import { AhaMomentCard } from './AhaMomentCard';
+import GrowthDashboard from './GrowthDashboard';
 import {
   logUserAction,
   logInfo,
@@ -49,9 +51,16 @@ import {
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { trackEvent } = useAnalytics();
+  
+  // Track page view
+  usePageView('dashboard', { 
+    hasProfile: !!user?.profile,
+    profileComplete: !!user?.profile?.targetRole 
+  });
   const { theme, toggleTheme } = useTheme();
   const traceId = generateTraceId();
-  const [activeTab, setActiveTab] = useState<'overview' | 'analytics' | 'roadmap' | 'insights'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'analytics' | 'growth' | 'roadmap' | 'insights'>('overview');
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   
@@ -313,6 +322,7 @@ export default function Dashboard() {
               {[
                 { id: 'overview', label: 'Overview', icon: BarChart3 },
                 { id: 'analytics', label: 'Analytics', icon: PieChart },
+                { id: 'growth', label: 'Growth', icon: Activity },
                 { id: 'roadmap', label: 'Roadmap', icon: Target },
                 { id: 'insights', label: 'AI Insights', icon: Zap }
               ].map((tab) => (
@@ -702,6 +712,13 @@ export default function Dashboard() {
                   </DashboardErrorBoundary>
                 </CardContent>
               </Card>
+            </div>
+          )}
+
+          {/* Growth Tab */}
+          {activeTab === 'growth' && (
+            <div className="space-y-6">
+              <GrowthDashboard />
             </div>
           )}
 

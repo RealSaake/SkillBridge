@@ -59,6 +59,9 @@ afterAll(() => {
 // Mock fetch for API calls
 global.fetch = jest.fn();
 
+// Mock GitHubService for tests
+jest.mock('./services/GitHubService');
+
 // Mock ResizeObserver
 global.ResizeObserver = jest.fn().mockImplementation(() => ({
   observe: jest.fn(),

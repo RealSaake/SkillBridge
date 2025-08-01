@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { ComponentErrorBoundary } from './ErrorBoundary';
+import GitHubService from '../services/GitHubService';
 import { 
   Github, 
   RefreshCw, 
@@ -43,7 +44,7 @@ interface GitHubActivityData {
   };
   repositories: Array<{
     name: string;
-    language: string;
+    language: string | null;
     stargazers_count: number;
     forks_count: number;
     updated_at: string;
@@ -69,58 +70,58 @@ export const GitHubActivityEnhanced: React.FC<GitHubActivityEnhancedProps> = ({
   const [data, setData] = useState<GitHubActivityData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Mock data fetching - replace with real MCP integration
+  // Real GitHub data fetching through MCP integration
   const fetchGitHubActivity = async () => {
     try {
       setError(null);
       
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Use real GitHub API through GitHubService
+      const githubService = GitHubService.getInstance();
+      const [profile, repositories] = await Promise.all([
+        githubService.fetchUserProfile(),
+        githubService.fetchUserRepositories()
+      ]);
       
-      // Mock data
-      const mockData: GitHubActivityData = {
+      // Calculate stats from real data
+      const totalStars = repositories.reduce((sum, repo) => sum + repo.stargazers_count, 0);
+      const totalForks = repositories.reduce((sum, repo) => sum + repo.forks_count, 0);
+      
+      const languages: Record<string, number> = {};
+      repositories.forEach(repo => {
+        if (repo.language) {
+          languages[repo.language] = (languages[repo.language] || 0) + 1;
+        }
+      });
+      
+      const oneMonthAgo = new Date();
+      oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+      
+      const recentRepos = repositories.filter(repo => 
+        new Date(repo.updated_at) > oneMonthAgo
+      );
+      
+      const activityData: GitHubActivityData = {
         profile: {
-          login: username,
-          name: 'Test User',
-          avatar_url: `https://github.com/${username}.png`,
-          public_repos: 25,
-          followers: 150,
-          following: 75
+          login: profile.login,
+          name: profile.name || profile.login,
+          avatar_url: profile.avatar_url,
+          public_repos: profile.public_repos,
+          followers: profile.followers,
+          following: profile.following
         },
-        repositories: [
-          {
-            name: 'awesome-project',
-            language: 'TypeScript',
-            stargazers_count: 42,
-            forks_count: 8,
-            updated_at: '2024-01-20T15:30:00Z'
-          },
-          {
-            name: 'data-analysis',
-            language: 'Python',
-            stargazers_count: 23,
-            forks_count: 5,
-            updated_at: '2024-01-18T09:15:00Z'
-          }
-        ],
+        repositories: repositories.slice(0, 10), // Show top 10 repos
         stats: {
-          totalStars: 65,
-          totalForks: 13,
-          languages: {
-            'TypeScript': 8,
-            'Python': 6,
-            'JavaScript': 5,
-            'Go': 3,
-            'Rust': 2
-          },
+          totalStars,
+          totalForks,
+          languages,
           recentActivity: {
-            commitsThisMonth: 47,
-            reposUpdatedThisMonth: 8
+            commitsThisMonth: 0, // Would need additional API call to get commit data
+            reposUpdatedThisMonth: recentRepos.length
           }
         }
       };
       
-      setData(mockData);
+      setData(activityData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch GitHub activity');
     } finally {

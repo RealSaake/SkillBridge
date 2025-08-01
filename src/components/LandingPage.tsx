@@ -3,14 +3,36 @@ import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { logUserAction } from '../utils/logger';
+import { useAnalytics, usePageView } from '../hooks/useAnalytics';
 
 export const LandingPage: React.FC = () => {
   const [showDemo, setShowDemo] = useState(false);
+  const { trackEvent, trackConversion } = useAnalytics();
+  
+  // Track page view
+  usePageView('landing_page');
 
-  const handleCTAClick = (source: string) => {
+  const handleCTAClick = async (source: string) => {
     logUserAction('landing_cta_clicked', {
       source,
       timestamp: Date.now()
+    });
+    
+    // Track analytics event
+    await trackEvent('landing_cta_clicked', {
+      source,
+      buttonText: source === 'hero-primary' ? 'Create My Profile' : 
+                  source === 'profile-showcase' ? 'Create My Professional Profile' :
+                  'Create My Professional Profile',
+      location: source
+    });
+  };
+
+  const handleDemoToggle = async () => {
+    setShowDemo(!showDemo);
+    await trackEvent('demo_toggle', {
+      action: !showDemo ? 'show' : 'hide',
+      location: 'hero_section'
     });
   };
 
@@ -116,7 +138,7 @@ export const LandingPage: React.FC = () => {
                 variant="outline" 
                 size="lg" 
                 className="text-white border-white hover:bg-white hover:text-slate-900 px-8 py-4 text-lg"
-                onClick={() => setShowDemo(!showDemo)}
+                onClick={handleDemoToggle}
               >
                 <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />

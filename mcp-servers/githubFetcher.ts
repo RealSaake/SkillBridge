@@ -110,38 +110,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
                         ],
                     };
                 } catch (fetchError) {
-                    // Fallback to mock data if available
                     console.error(`GitHub API fetch failed for ${username}:`, fetchError);
-
-                    // Fallback to sample data
-                    console.log('Using fallback sample data for GitHub repos');
-
-                    const sampleRepos = [
-                        {
-                            name: 'sample-react-app',
-                            description: 'A React application showcasing modern frontend development',
-                            language: 'JavaScript',
-                            stargazers_count: 15,
-                            updated_at: new Date().toISOString(),
-                            fork: false
-                        },
-                        {
-                            name: 'python-data-analysis',
-                            description: 'Data analysis project using Python and pandas',
-                            language: 'Python',
-                            stargazers_count: 8,
-                            updated_at: new Date().toISOString(),
-                            fork: false
-                        }
-                    ];
-
+                    
                     return {
                         content: [
                             {
                                 type: 'text',
-                                text: JSON.stringify(sampleRepos, null, 2),
+                                text: JSON.stringify({ error: 'Failed to fetch GitHub repositories. Please check your GitHub connection and try again.' }, null, 2),
                             },
                         ],
+                        isError: true,
                     };
                 }
             }
@@ -184,28 +162,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request: CallToolRequest)
                         ],
                     };
                 } catch (fetchError) {
-                    // Fallback to mock data if available
                     console.error(`GitHub API fetch failed for ${username}:`, fetchError);
-
-                    // Fallback to sample data
-                    console.log('Using fallback sample data for GitHub profile');
-
-                    const sampleProfile = {
-                        login: username,
-                        name: 'Sample Developer',
-                        followers: 50,
-                        public_repos: 25,
-                        created_at: new Date(Date.now() - (2.5 * 365 * 24 * 60 * 60 * 1000)).toISOString(),
-                        bio: 'Sample developer profile for demonstration purposes'
-                    };
-
+                    
                     return {
                         content: [
                             {
                                 type: 'text',
-                                text: JSON.stringify(sampleProfile, null, 2),
+                                text: JSON.stringify({ error: 'Failed to fetch GitHub profile. Please check your GitHub connection and try again.' }, null, 2),
                             },
                         ],
+                        isError: true,
                     };
                 }
             }
