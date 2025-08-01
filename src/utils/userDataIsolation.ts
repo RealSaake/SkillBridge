@@ -729,7 +729,6 @@ class UserDataIsolation {
             // Additional GitHub API fields to prevent security warnings
             node_id: { type: 'string' as const, required: false },
             owner: { type: 'object' as const, required: false },
-            html_url: { type: 'string' as const, required: false },
             clone_url: { type: 'string' as const, required: false },
             git_url: { type: 'string' as const, required: false },
             ssh_url: { type: 'string' as const, required: false },
