@@ -3,6 +3,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { useSecureGitHubRepositories, useSecureUserStats } from '../hooks/useSecureData';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Roadmap } from './Roadmap';
+import { AIInsights } from './AIInsights';
 import { 
   Star, 
   GitFork, 
@@ -11,12 +13,16 @@ import {
   ExternalLink,
   TrendingUp,
   Activity,
-  PieChart
+  PieChart,
+  Target,
+  Brain,
+  BarChart3
 } from 'lucide-react';
 
 export default function Dashboard() {
   const { user } = useAuth();
   const [refreshing, setRefreshing] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState<'overview' | 'roadmap' | 'insights'>('overview');
   
   // Use secure data hooks
   const { 
@@ -106,8 +112,35 @@ export default function Dashboard() {
       </header>
 
       <main className="container mx-auto px-6 py-8 max-w-6xl">
-        {/* Stat Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        {/* Tab Navigation */}
+        <div className="mb-8">
+          <nav className="flex space-x-1 bg-muted p-1 rounded-lg w-fit">
+            {[
+              { id: 'overview', label: 'Overview', icon: BarChart3 },
+              { id: 'roadmap', label: 'Roadmap', icon: Target },
+              { id: 'insights', label: 'AI Insights', icon: Brain }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                  activeTab === tab.id
+                    ? 'bg-background text-primary shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <tab.icon className="w-4 h-4" />
+                {tab.label}
+              </button>
+            ))}
+          </nav>
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === 'overview' && (
+          <>
+            {/* Stat Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
@@ -289,6 +322,23 @@ export default function Dashboard() {
             </Card>
           </div>
         </div>
+          </>
+        )}
+
+        {activeTab === 'roadmap' && (
+          <Roadmap targetRole={user.profile?.targetRole || 'fullstack-developer'} />
+        )}
+
+        {activeTab === 'insights' && (
+          <AIInsights 
+            userProfile={{
+              currentRole: user.profile?.currentRole || 'developer',
+              targetRole: user.profile?.targetRole || 'fullstack-developer',
+              skills: user.profile?.techStack || [],
+              experience: user.profile?.experienceLevel || 'intermediate'
+            }}
+          />
+        )}
       </main>
     </div>
   );

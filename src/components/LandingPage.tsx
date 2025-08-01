@@ -245,10 +245,10 @@ export function LandingPage({ onGetStarted, onSignIn }: LandingPageProps) {
               <span className="font-semibold">SkillBridge</span>
             </div>
             <div className="flex items-center space-x-6 text-sm text-muted-foreground">
-              <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
-              <a href="#" className="hover:text-foreground transition-colors">Terms</a>
-              <a href="#" className="hover:text-foreground transition-colors">Support</a>
-              <a href="#" className="hover:text-foreground transition-colors">Contact</a>
+              <button className="hover:text-foreground transition-colors">Privacy</button>
+              <button className="hover:text-foreground transition-colors">Terms</button>
+              <button className="hover:text-foreground transition-colors">Support</button>
+              <button className="hover:text-foreground transition-colors">Contact</button>
             </div>
           </div>
         </div>
