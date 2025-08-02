@@ -1,75 +1,109 @@
 {
-    "functions": [
-        {
-            "source": "functions",
-            "codebase": "default",
-            "ignore": [
-                "node_modules",
-                ".git",
-                "firebase-debug.log",
-                "firebase-debug.*.log"
-            ]
-        }
-    ],
-    "hosting": {
-        "public": "build",
-        "ignore": [
-            "firebase.json",
-            "**/.*",
-            "**/node_modules/**"
-        ],
-        "headers": [
-            {
-                "source": "/api/**",
-                "headers": [
-                    {
-                        "key": "Cache-Control",
-                        "value": "no-cache, no-store, must-revalidate"
-                    }
-                ]
-            }
-        ],
-        "rewrites": [
-            {
-                "source": "/api/auth/github",
-                "function": "githubAuth"
-            },
-            {
-                "source": "/api/auth/github/callback",
-                "function": "githubCallback"
-            },
-            {
-                "source": "/auth/me",
-                "function": "userAuth"
-            },
-            {
-                "source": "/api/auth/logout",
-                "function": "logout"
-            },
-            {
-                "source": "/profiles",
-                "function": "profiles"
-            },
-            {
-                "source": "/api/mcp/github-analysis",
-                "function": "mcpGithubAnalysis"
-            },
-            {
-                "source": "/api/mcp/skills-analysis",
-                "function": "mcpSkillsAnalysis"
-            },
-            {
-                "source": "/health",
-                "function": "health"
-            },
-            {
-                "source": "/api",
-                "function": "api"
-            },
-            {
-                "source": "**",
-                "destination": "/index.html"
-            }
-        ]
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log"
+      ]
     }
+  ],
+  "hosting": {
+    "public": "build",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "headers": [
+      {
+        "source": "/api/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
+        ]
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "/api/auth/github",
+        "function": "githubAuth"
+      },
+      {
+        "source": "/api/auth/github/callback",
+        "function": "githubCallback"
+      },
+      {
+        "source": "/api/auth/logout",
+        "function": "logout"
+      },
+      {
+        "source": "/profilesMe",
+        "function": "profilesMe"
+      },
+      {
+        "source": "/profilesCreate",
+        "function": "profilesCreate"
+      },
+      {
+        "source": "/profilesProgress",
+        "function": "profilesProgress"
+      },
+      {
+        "source": "/logout",
+        "function": "logout"
+      },
+      {
+        "source": "/exportUserData",
+        "function": "exportUserData"
+      },
+      {
+        "source": "/deleteAccount",
+        "function": "deleteAccount"
+      },
+      {
+        "source": "/api/mcp/github-analysis",
+        "function": "mcpGithubAnalysis"
+      },
+      {
+        "source": "/api/mcp/skills-analysis",
+        "function": "mcpSkillsAnalysis"
+      },
+      {
+        "source": "/api/mcp/skill-gap-analysis",
+        "function": "mcpSkillGapAnalysis"
+      },
+      {
+        "source": "/api/mcp/learning-roadmap",
+        "function": "mcpLearningRoadmap"
+      },
+      {
+        "source": "/api/mcp/resume-analysis",
+        "function": "mcpResumeAnalysis"
+      },
+      {
+        "source": "/health",
+        "function": "health"
+      },
+      {
+        "source": "/api",
+        "function": "api"
+      },
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
+  "firestore": {
+    "database": "(default)",
+    "location": "asia-southeast1",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
 }

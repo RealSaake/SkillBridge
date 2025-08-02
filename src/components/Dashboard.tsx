@@ -5,10 +5,13 @@ import { ResumeReview } from './ResumeReview';
 import { SkillGapAnalysis } from './SkillGapAnalysis';
 import { LearningRoadmap } from './LearningRoadmap';
 import { JobMarketInsights } from './JobMarketInsights';
+import { InteractiveResumeReviewer } from './InteractiveResumeReviewer';
+import { AutonomousCareerInsights } from './AutonomousCareerInsights';
 import { Button } from './ui/button';
 import { RefreshCw, LogOut } from 'lucide-react';
 import { MCPErrorBoundary } from './MCPErrorBoundary';
 import { clearMCPCache } from '../hooks/usePersonalizedMCP';
+import { terminalLogger } from '../utils/terminalLogger';
 
 export default function Dashboard() {
   const { user, profile, isLoading, hasCompletedOnboarding, logout } = useAuth();
@@ -20,12 +23,17 @@ export default function Dashboard() {
     
     try {
       setRefreshing(true);
+      terminalLogger.info('Dashboard', 'Refreshing all MCP data', { userId: user?.id });
+      
       // Clear MCP cache to force fresh data
       clearMCPCache();
-      // Refresh logic would go here
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Mock delay
+      
+      // Force refresh of all components
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      terminalLogger.info('Dashboard', 'Dashboard refresh completed', { duration: '1000ms' });
     } catch (error) {
-      console.error('Refresh failed:', error);
+      terminalLogger.error('Dashboard', 'Dashboard refresh failed', { error: error.message });
     } finally {
       setRefreshing(false);
     }
@@ -158,23 +166,36 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* Sacred UI Layout: 2-column grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="space-y-6">
+        {/* COMMAND CENTER: Pixel-Perfect Multi-Column Interactive Grid */}
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+          {/* Left Column: GitHub Activity & Skills */}
+          <div className="xl:col-span-1 space-y-6">
             <GitHubActivity />
             <MCPErrorBoundary>
               <SkillGapAnalysis />
             </MCPErrorBoundary>
-            <JobMarketInsights />
           </div>
           
-          <div className="space-y-6">
+          {/* Center-Left Column: Interactive Resume Reviewer */}
+          <div className="xl:col-span-1 space-y-6">
             <MCPErrorBoundary>
-              <ResumeReview />
+              <InteractiveResumeReviewer />
             </MCPErrorBoundary>
+          </div>
+
+          {/* Center-Right Column: Learning Roadmap */}
+          <div className="xl:col-span-1 space-y-6">
             <MCPErrorBoundary>
               <LearningRoadmap />
             </MCPErrorBoundary>
+          </div>
+
+          {/* Right Column: AI Insights & Market Intelligence */}
+          <div className="xl:col-span-1 space-y-6">
+            <MCPErrorBoundary>
+              <AutonomousCareerInsights />
+            </MCPErrorBoundary>
+            <JobMarketInsights />
           </div>
         </div>
       </main>

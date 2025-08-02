@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Github, GitCommit, GitPullRequest, Star, ChevronDown, ChevronUp, AlertCircle, Loader2 } from 'lucide-react';
+import { Github, GitCommit, Star, ChevronDown, ChevronUp, AlertCircle, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { useAuth } from '../contexts/AuthContext';
@@ -14,7 +14,6 @@ interface GitHubStats {
 
 export function GitHubActivity() {
   const [isExpanded, setIsExpanded] = useState(true);
-  const { user } = useAuth();
   
   // Use secure data hooks
   const { 

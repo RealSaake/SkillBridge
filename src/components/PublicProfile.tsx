@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAnalytics, usePageView, useProfileAnalytics } from '../hooks/useAnalytics';
 import { 
@@ -6,7 +6,6 @@ import {
   MapPin, 
   Link as LinkIcon, 
   Github, 
-  Linkedin, 
   Star, 
   GitFork, 
   Calendar,
@@ -111,24 +110,18 @@ const PublicProfile: React.FC<PublicProfileProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [sharing, setSharing] = useState(false);
   
-  const { trackEvent, trackProfileView, trackProfileShare } = useAnalytics();
+  const { trackProfileView, trackProfileShare } = useAnalytics();
   
   // Track page view and profile analytics
   usePageView('public_profile', { profileUsername: username });
-  const { analytics: profileAnalytics } = useProfileAnalytics(username || '', '30d');
+  useProfileAnalytics(username || '', '30d');
   
   const traceId = React.useMemo(() => 
     `public-profile-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`, 
     []
   );
 
-  useEffect(() => {
-    if (username) {
-      fetchPublicProfile(username);
-    }
-  }, [username]);
-
-  const fetchPublicProfile = async (profileUsername: string) => {
+  const fetchPublicProfile = useCallback(async (profileUsername: string) => {
     try {
       setLoading(true);
       setError(null);
@@ -168,7 +161,7 @@ const PublicProfile: React.FC<PublicProfileProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [logUserAction, traceId, embedded, compact, logError]);
 
   const trackProfileViewAPI = async (profileUsername: string) => {
     try {
@@ -187,6 +180,12 @@ const PublicProfile: React.FC<PublicProfileProps> = ({
       console.warn('Failed to track profile view:', err);
     }
   };
+
+  useEffect(() => {
+    if (username) {
+      fetchPublicProfile(username);
+    }
+  }, [username, fetchPublicProfile]);
 
   const handleShare = async () => {
     if (!profileData) return;

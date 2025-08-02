@@ -16,7 +16,7 @@ interface QuizData {
 }
 
 export const OnboardingQuiz: React.FC = () => {
-  const { user } = useAuth();
+  const { user, refreshUserData } = useAuth();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -47,23 +47,82 @@ export const OnboardingQuiz: React.FC = () => {
     }
   };
 
+  const validateQuizData = () => {
+    const errors = [];
+    
+    if (!quizData.currentRole || quizData.currentRole.trim().length === 0) {
+      errors.push('Current role is required');
+    }
+    
+    if (!quizData.experienceLevel || quizData.experienceLevel.trim().length === 0) {
+      errors.push('Experience level is required');
+    }
+    
+    if (!quizData.targetRole || quizData.targetRole.trim().length === 0) {
+      errors.push('Target role is required');
+    }
+    
+    if (!quizData.primaryGoals || quizData.primaryGoals.length === 0) {
+      errors.push('At least one primary goal is required');
+    }
+    
+    if (!quizData.techStack || quizData.techStack.length === 0) {
+      errors.push('At least one technology is required');
+    } else if (quizData.techStack.length > 20) {
+      errors.push('Please select no more than 20 technologies');
+    }
+    
+    if (!quizData.learningStyle || quizData.learningStyle.trim().length === 0) {
+      errors.push('Learning style is required');
+    }
+    
+    if (!quizData.timeCommitment || quizData.timeCommitment.trim().length === 0) {
+      errors.push('Time commitment is required');
+    }
+    
+    if (quizData.primaryGoals.length > 10) {
+      errors.push('Please select no more than 10 primary goals');
+    }
+    
+    return errors;
+  };
+
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      // Prepare profile data for the new API
+      // Validate quiz data
+      const validationErrors = validateQuizData();
+      if (validationErrors.length > 0) {
+        alert('Please fix the following issues:\n' + validationErrors.join('\n'));
+        return;
+      }
+
+      // Prepare and sanitize profile data
       const profileData = {
-        currentRole: quizData.currentRole,
-        targetRole: quizData.targetRole,
-        experienceLevel: quizData.experienceLevel,
-        techStack: quizData.techStack,
-        careerGoal: quizData.primaryGoals.join(', '), // Convert array to string
-        learningStyle: quizData.learningStyle,
-        timeCommitment: quizData.timeCommitment
+        currentRole: quizData.currentRole.trim(),
+        targetRole: quizData.targetRole.trim(),
+        experienceLevel: quizData.experienceLevel.trim(),
+        techStack: quizData.techStack.map(tech => tech.trim()).filter(tech => tech.length > 0),
+        careerGoal: quizData.primaryGoals.join(', ').trim(),
+        learningStyle: quizData.learningStyle.trim(),
+        timeCommitment: quizData.timeCommitment.trim()
       };
+
+      // Additional validation
+      if (profileData.careerGoal.length > 500) {
+        alert('Career goals are too long. Please keep them under 500 characters.');
+        return;
+      }
 
       // Create profile using the new API endpoint
       const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://skillbridge-career-dev.web.app';
       const token = localStorage.getItem('accessToken');
+      
+      if (!token) {
+        alert('Authentication token not found. Please sign in again.');
+        window.location.href = '/login';
+        return;
+      }
       
       const response = await fetch(`${API_BASE_URL}/profilesCreate`, {
         method: 'POST',
@@ -76,18 +135,33 @@ export const OnboardingQuiz: React.FC = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create profile');
+        console.error('Profile creation error:', errorData);
+        
+        if (response.status === 401) {
+          alert('Your session has expired. Please sign in again.');
+          window.location.href = '/login';
+          return;
+        } else if (response.status === 409) {
+          alert('You already have a profile. Redirecting to dashboard...');
+          window.location.href = '/dashboard';
+          return;
+        } else {
+          throw new Error(errorData.error || 'Failed to create profile');
+        }
       }
 
       const result = await response.json();
       console.log('✅ Profile created successfully:', result);
 
+      // Refresh user data to include the new profile
+      await refreshUserData();
+
       // Show the Aha! moment instead of going directly to dashboard
       setShowAhaMoment(true);
     } catch (error) {
       console.error('❌ Error creating profile:', error);
-      // Show error to user
-      alert('Failed to save your profile. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      alert(`Failed to save your profile: ${errorMessage}. Please try again.`);
     } finally {
       setLoading(false);
     }

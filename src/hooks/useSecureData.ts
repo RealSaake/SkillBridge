@@ -33,20 +33,42 @@ export function useSecureGitHubProfile(options: UseSecureDataOptions = {}) {
   });
 
   const fetchProfile = useCallback(async () => {
+    console.log('📊 SECURE_DATA: Starting GitHub profile fetch');
+    
     if (!user) {
+      console.log('📊 SECURE_DATA: No user found, clearing profile data');
       setState(prev => ({ ...prev, data: null, loading: false, error: null }));
       return;
     }
 
+    console.log('📊 SECURE_DATA: User found, starting profile fetch for:', user.username);
     setState(prev => ({ ...prev, loading: true, error: null }));
 
     try {
-      // Validate session integrity
+      // Get access token for validation
+      const accessToken = localStorage.getItem('accessToken');
+      console.log('📊 SECURE_DATA: Access token check:', {
+        hasToken: !!accessToken,
+        tokenPrefix: accessToken?.substring(0, 10) + '...'
+      });
+
+      if (!accessToken) {
+        throw new Error('Authentication Missing: No access token found');
+      }
+
+      // Validate session integrity with detailed logging
+      console.log('📊 SECURE_DATA: Validating session integrity');
       if (!userDataIsolation.validateSessionIntegrity()) {
         throw new Error('Session integrity check failed');
       }
 
+      console.log('✅ SECURE_DATA: Session integrity validated, fetching profile data');
       const profileData = await userDataIsolation.fetchUserProfile();
+      
+      console.log('✅ SECURE_DATA: Profile data fetched successfully:', {
+        username: profileData?.login,
+        publicRepos: profileData?.public_repos
+      });
       
       setState({
         data: profileData,
@@ -57,18 +79,25 @@ export function useSecureGitHubProfile(options: UseSecureDataOptions = {}) {
 
       return profileData;
     } catch (error: any) {
-      console.error('Error fetching GitHub profile:', error);
+      console.error('❌ SECURE_DATA: Error fetching GitHub profile:', error);
       
       let errorMessage = 'Failed to fetch profile data';
       
-      if (error.message.includes('token expired') || error.message.includes('invalid')) {
+      if (error.message.includes('Authentication Missing')) {
+        errorMessage = 'Authentication Missing: Please sign in again';
+        console.error('❌ SECURE_DATA: Authentication missing - logging out user');
+        await logout();
+      } else if (error.message.includes('token expired') || error.message.includes('invalid')) {
         errorMessage = 'Authentication expired. Please log in again.';
+        console.error('❌ SECURE_DATA: Token expired - logging out user');
         await logout();
       } else if (error.message.includes('validation failed')) {
         errorMessage = 'Data validation failed. Session compromised.';
+        console.error('❌ SECURE_DATA: Data validation failed - logging out user');
         await logout();
       } else if (error.message.includes('integrity check failed')) {
         errorMessage = 'Session security check failed. Please log in again.';
+        console.error('❌ SECURE_DATA: Session integrity failed - logging out user');
         await logout();
       }
 

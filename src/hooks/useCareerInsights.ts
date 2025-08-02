@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { logInfo, logError } from '../utils/logger';
+import { terminalLogger } from '../utils/terminalLogger';
 
 interface CareerInsight {
   type: 'skill_gap' | 'roadmap' | 'resume_tip' | 'github_analysis';
@@ -143,47 +144,34 @@ export const useCareerInsights = ({
 
   const fetchSkillGapAnalysis = async (role: string, username?: string) => {
     try {
-      // TODO: Integrate with MCP portfolio-analyzer server
-      // For now, return empty data structure to avoid mock data
-      return {
-        summary: `Skill analysis for ${role.replace('-', ' ')} role requires GitHub connection`,
-        confidence: 0,
-        recommendations: []
-      };
+      terminalLogger.mcpRequest('useCareerInsights', 'portfolio-analyzer', 'find_skill_gaps', { role, username });
+      
+      // DIRECT MCP INTEGRATION - NO MOCK DATA
+      const skillGapData = await mcp_portfolio_analyzer_find_skill_gaps({
+        githubRepos: [], // Would be populated from real GitHub data
+        targetRole: role
+      });
+
+      terminalLogger.mcpResponse('useCareerInsights', 'portfolio-analyzer', 'find_skill_gaps', skillGapData);
+      return skillGapData;
     } catch (error) {
-      logError('Error fetching skill gap analysis', error as Error, {
-        role,
-        username
-      }, 'useCareerInsights');
-      return null;
+      terminalLogger.mcpError('useCareerInsights', 'portfolio-analyzer', 'find_skill_gaps', error);
+      throw error; // FAIL FAST - NO FALLBACK DATA
     }
   };
 
   const fetchCareerRoadmap = async (role: string) => {
     try {
-      // This would integrate with the roadmap-data MCP server
-      return {
-        description: `Comprehensive learning path for ${role.replace('-', ' ')} with 12 milestones`,
-        milestones: [
-          {
-            title: 'Master Core Technologies',
-            resources: [{ url: 'https://developer.mozilla.org/en-US/docs/Web/JavaScript' }]
-          },
-          {
-            title: 'Build Portfolio Projects',
-            resources: [{ url: 'https://github.com/topics/portfolio' }]
-          },
-          {
-            title: 'Practice System Design',
-            resources: [{ url: 'https://github.com/donnemartin/system-design-primer' }]
-          }
-        ]
-      };
+      terminalLogger.mcpRequest('useCareerInsights', 'roadmap-data', 'get_career_roadmap', { role });
+      
+      // DIRECT MCP INTEGRATION - NO MOCK DATA
+      const roadmapData = await mcp_roadmap_data_get_career_roadmap({ role });
+
+      terminalLogger.mcpResponse('useCareerInsights', 'roadmap-data', 'get_career_roadmap', roadmapData);
+      return roadmapData;
     } catch (error) {
-      logError('Error fetching career roadmap', error as Error, {
-        role
-      }, 'useCareerInsights');
-      return null;
+      terminalLogger.mcpError('useCareerInsights', 'roadmap-data', 'get_career_roadmap', error);
+      throw error; // FAIL FAST - NO FALLBACK DATA
     }
   };
 

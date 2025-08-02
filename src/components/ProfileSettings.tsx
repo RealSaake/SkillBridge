@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Settings, 
   Eye, 
-  EyeOff, 
-  Share2, 
   Copy, 
   ExternalLink,
   Save,
@@ -90,12 +88,7 @@ const ProfileSettings: React.FC = () => {
     []
   );
 
-  useEffect(() => {
-    loadProfileSettings();
-    loadAvailableRepos();
-  }, []);
-
-  const loadProfileSettings = async () => {
+  const loadProfileSettings = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -119,7 +112,7 @@ const ProfileSettings: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [settings, customization, user?.id, traceId, logError]);
 
   const loadAvailableRepos = async () => {
     try {
@@ -138,6 +131,11 @@ const ProfileSettings: React.FC = () => {
       console.warn('Failed to load repositories:', error);
     }
   };
+
+  useEffect(() => {
+    loadProfileSettings();
+    loadAvailableRepos();
+  }, [loadProfileSettings]);
 
   const handleSettingChange = (key: keyof ProfileVisibilitySettings, value: boolean) => {
     setSettings(prev => ({

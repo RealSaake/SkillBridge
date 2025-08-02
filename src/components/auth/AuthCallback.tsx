@@ -24,6 +24,7 @@ export const AuthCallback: React.FC = () => {
     const handleCallback = async () => {
       if (isProcessing || hasNavigated) return;
       
+      console.log('🔄 CALLBACK: Starting authentication callback processing');
       setIsProcessing(true);
       
       try {
@@ -31,20 +32,31 @@ export const AuthCallback: React.FC = () => {
         const refreshToken = searchParams.get('refresh');
         const error = searchParams.get('error');
 
+        console.log('🔄 CALLBACK: Extracted URL parameters', {
+          hasToken: !!token,
+          hasRefreshToken: !!refreshToken,
+          hasError: !!error
+        });
+
         if (error) {
+          console.error('❌ CALLBACK: OAuth error received:', error);
           setStatus('error');
           setErrorMessage(getErrorMessage(error));
           return;
         }
 
         if (!token || !refreshToken) {
+          console.error('❌ CALLBACK: Missing authentication tokens');
           setStatus('error');
           setErrorMessage('Missing authentication tokens');
           return;
         }
 
-        // Login with tokens - this will fetch user and profile data
+        console.log('🔄 CALLBACK: Calling login function with tokens');
+        // Login with tokens - this will ATOMICALLY initialize session and fetch user data
         await login(token, refreshToken);
+        
+        console.log('✅ CALLBACK: Login completed successfully, checking profile status');
         
         // Check if user has completed onboarding by making a direct API call
         const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://skillbridge-career-dev.web.app';
@@ -55,34 +67,37 @@ export const AuthCallback: React.FC = () => {
           }
         });
 
+        console.log('🔄 CALLBACK: Profile check response:', profileResponse.status);
+
         if (profileResponse.ok) {
           // User has a profile - returning user
+          console.log('✅ CALLBACK: Returning user detected - has profile');
           setUserType('returning');
           setStatus('success');
           
           if (!hasNavigated) {
             hasNavigated = true;
-            setTimeout(() => {
-              navigate('/dashboard', { replace: true });
-            }, 1500);
+            console.log('🚀 CALLBACK: Navigating to dashboard immediately');
+            navigate('/dashboard', { replace: true });
           }
         } else if (profileResponse.status === 404) {
           // User doesn't have a profile - new user
+          console.log('🆕 CALLBACK: New user detected - needs onboarding');
           setUserType('new');
           setStatus('success');
           
           if (!hasNavigated) {
             hasNavigated = true;
-            setTimeout(() => {
-              navigate('/onboarding', { replace: true });
-            }, 1500);
+            console.log('🚀 CALLBACK: Navigating to onboarding immediately');
+            navigate('/onboarding', { replace: true });
           }
         } else {
+          console.error('❌ CALLBACK: Unexpected profile check response:', profileResponse.status);
           throw new Error('Failed to check profile status');
         }
 
       } catch (error) {
-        console.error('Authentication callback error:', error);
+        console.error('❌ CALLBACK: Authentication callback error:', error);
         setStatus('error');
         setErrorMessage('Failed to complete authentication');
       } finally {
@@ -155,16 +170,32 @@ export const AuthCallback: React.FC = () => {
           )}
 
           {status === 'success' && userType === 'new' && (
-            <div className="space-y-2">
-              <p className="text-green-600 font-medium">Welcome to SkillBridge!</p>
-              <p className="text-gray-600">Let's set up your profile...</p>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <p className="text-green-600 font-medium">Welcome to SkillBridge!</p>
+                <p className="text-gray-600">Let's set up your profile...</p>
+              </div>
+              <button
+                onClick={() => navigate('/onboarding', { replace: true })}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
+              >
+                Continue to Setup
+              </button>
             </div>
           )}
 
           {status === 'success' && userType === 'returning' && (
-            <div className="space-y-2">
-              <p className="text-green-600 font-medium">Welcome back!</p>
-              <p className="text-gray-600">Taking you to your dashboard...</p>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <p className="text-green-600 font-medium">Welcome back!</p>
+                <p className="text-gray-600">Taking you to your dashboard...</p>
+              </div>
+              <button
+                onClick={() => navigate('/dashboard', { replace: true })}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
+              >
+                Go to Dashboard
+              </button>
             </div>
           )}
 

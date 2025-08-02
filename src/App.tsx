@@ -13,11 +13,11 @@ import { DevLanding } from './components/DevLanding';
 import Dashboard from './components/Dashboard';
 import PublicProfile from './components/PublicProfile';
 import ProfileSettings from './components/ProfileSettings';
+import { CommandCenter } from './components/CommandCenter';
 import { 
   ErrorBoundary, 
   DashboardErrorBoundary, 
-  AuthErrorBoundary,
-  GitHubDataErrorBoundary 
+  AuthErrorBoundary
 } from './components/ErrorBoundary';
 import { logger } from './utils/logger';
 
@@ -262,6 +262,16 @@ function App() {
                         <ProtectedRoute requireProfile={true}>
                           <ErrorBoundary component="ProfileSettings">
                             <ProfileSettings />
+                          </ErrorBoundary>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/command-center"
+                      element={
+                        <ProtectedRoute requireProfile={true}>
+                          <ErrorBoundary component="CommandCenter">
+                            <CommandCenter />
                           </ErrorBoundary>
                         </ProtectedRoute>
                       }

@@ -290,6 +290,57 @@ class UserDataIsolation {
   }
 
   /**
+   * Validate session integrity with comprehensive logging
+   */
+  public validateSessionIntegrity(): boolean {
+    console.log('🔒 SESSION_CHECK: Starting session integrity validation');
+    
+    if (!this.currentSession) {
+      console.error('❌ SESSION_CHECK: No current session found');
+      return false;
+    }
+
+    // Check if session is expired
+    if (Date.now() > this.currentSession.expiresAt) {
+      console.error('❌ SESSION_CHECK: Session expired', {
+        expiresAt: new Date(this.currentSession.expiresAt).toISOString(),
+        now: new Date().toISOString()
+      });
+      this.clearSession();
+      return false;
+    }
+
+    // Validate required session fields
+    if (!this.currentSession.userId || !this.currentSession.accessToken || !this.currentSession.githubToken) {
+      console.error('❌ SESSION_CHECK: Missing required session fields', {
+        hasUserId: !!this.currentSession.userId,
+        hasAccessToken: !!this.currentSession.accessToken,
+        hasGithubToken: !!this.currentSession.githubToken
+      });
+      return false;
+    }
+
+    // Validate localStorage tokens match session
+    const storedAccessToken = localStorage.getItem('accessToken');
+    const storedRefreshToken = localStorage.getItem('refreshToken');
+    
+    if (storedAccessToken !== this.currentSession.accessToken || 
+        storedRefreshToken !== this.currentSession.refreshToken) {
+      console.error('❌ SESSION_CHECK: Token mismatch between session and localStorage');
+      this.clearSession();
+      return false;
+    }
+
+    console.log('✅ SESSION_CHECK: Session integrity validated successfully', {
+      userId: this.currentSession.userId,
+      username: this.currentSession.username,
+      expiresIn: Math.round((this.currentSession.expiresAt - Date.now()) / 1000 / 60) + ' minutes'
+    });
+    
+    return true;
+  }
+
+  /**
    * Validate that data belongs to current user
    */
   private validateUserData(data: any, expectedUserId: string): boolean {
@@ -1135,27 +1186,7 @@ class UserDataIsolation {
     return this.rateLimitInfo;
   }
 
-  /**
-   * Validate session integrity
-   */
-  public validateSessionIntegrity(): boolean {
-    const session = this.getCurrentSession();
-    if (!session) {
-      return false;
-    }
 
-    // Check if tokens are still in localStorage
-    const storedAccessToken = localStorage.getItem('accessToken');
-    const storedRefreshToken = localStorage.getItem('refreshToken');
-
-    if (storedAccessToken !== session.accessToken || storedRefreshToken !== session.refreshToken) {
-      console.warn('Session integrity check failed - tokens mismatch');
-      this.clearSession();
-      return false;
-    }
-
-    return true;
-  }
 }
 
 // Export singleton instance
