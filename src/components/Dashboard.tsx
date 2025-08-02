@@ -33,7 +33,7 @@ export default function Dashboard() {
       
       terminalLogger.info('Dashboard', 'Dashboard refresh completed', { duration: '1000ms' });
     } catch (error) {
-      terminalLogger.error('Dashboard', 'Dashboard refresh failed', { error: error.message });
+      terminalLogger.error('Dashboard', 'Dashboard refresh failed', { error: error instanceof Error ? error.message : String(error) });
     } finally {
       setRefreshing(false);
     }

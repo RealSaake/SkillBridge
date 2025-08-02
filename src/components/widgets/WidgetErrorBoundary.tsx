@@ -50,8 +50,8 @@ export class WidgetErrorBoundary extends Component<Props, State> {
 
     terminalLogger.error('WidgetErrorBoundary', `Widget error caught: ${this.props.widgetId}`, {
       widgetType: this.props.widgetType,
-      error: error.message,
-      stack: error.stack,
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
       componentStack: errorInfo.componentStack,
       retryCount: this.state.retryCount
     });
@@ -76,7 +76,8 @@ export class WidgetErrorBoundary extends Component<Props, State> {
     ];
 
     return retryablePatterns.some(pattern => 
-      pattern.test(error.message) || pattern.test(error.name)
+      pattern.test(error instanceof Error ? error.message : String(error)) || 
+      pattern.test(error instanceof Error ? error.name : 'UnknownError')
     );
   }
 

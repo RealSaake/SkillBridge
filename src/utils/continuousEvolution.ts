@@ -84,7 +84,11 @@ export class ContinuousEvolution {
   async performEvolutionCycle(): Promise<SystemEvolution> {
     if (this.isEvolving) {
       terminalLogger.debug('ContinuousEvolution', 'Evolution cycle already in progress');
-      return this.getLatestEvolution();
+      const latest = this.getLatestEvolution();
+      if (!latest) {
+        throw new Error('No evolution data available');
+      }
+      return latest;
     }
 
     try {
@@ -137,7 +141,7 @@ export class ContinuousEvolution {
 
     } catch (error) {
       terminalLogger.error('ContinuousEvolution', 'Evolution cycle failed', {
-        error: error.message
+        error: error instanceof Error ? error.message : String(error)
       });
       throw error;
     } finally {
@@ -359,7 +363,7 @@ export class ContinuousEvolution {
   }
 
   private generateOptimizationSuggestion(component: string): string {
-    const suggestions = {
+    const suggestions: Record<string, string[]> = {
       'InteractiveResumeReviewer': [
         'Implement progressive PDF rendering for faster load times',
         'Add intelligent caching for resume analysis results',
@@ -487,7 +491,7 @@ export class ContinuousEvolution {
       } catch (error) {
         terminalLogger.error('ContinuousEvolution', 'Failed to apply optimization', {
           component: optimization.component,
-          error: error.message
+          error: error instanceof Error ? error.message : String(error)
         });
       }
     }

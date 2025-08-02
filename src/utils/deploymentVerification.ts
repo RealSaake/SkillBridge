@@ -207,12 +207,12 @@ export class DeploymentVerification {
           name: test.name,
           passed: false,
           critical: test.critical,
-          error: error.message,
+          error: error instanceof Error ? error.message : String(error),
           duration
         });
         
         terminalLogger.error('DeploymentVerification', `Test failed: ${test.name}`, {
-          error: error.message,
+          error: error instanceof Error ? error.message : String(error),
           duration,
           critical: test.critical
         });

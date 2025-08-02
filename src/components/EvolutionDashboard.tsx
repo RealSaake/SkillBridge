@@ -68,7 +68,7 @@ export function EvolutionDashboard() {
       
     } catch (error) {
       terminalLogger.error('EvolutionDashboard', 'Failed to load evolution data', {
-        error: error.message
+        error: error instanceof Error ? error.message : String(error)
       });
     }
   };
@@ -88,7 +88,7 @@ export function EvolutionDashboard() {
       
     } catch (error) {
       terminalLogger.error('EvolutionDashboard', 'Manual evolution cycle failed', {
-        error: error.message
+        error: error instanceof Error ? error.message : String(error)
       });
     } finally {
       setIsEvolving(false);

@@ -87,7 +87,7 @@ export function AutonomousCareerInsights() {
       });
     } catch (error) {
       terminalLogger.error('AutonomousCareerInsights', 'Autonomous analysis failed', {
-        error: error.message
+        error: error instanceof Error ? error.message : String(error)
       });
     } finally {
       setIsAnalyzing(false);

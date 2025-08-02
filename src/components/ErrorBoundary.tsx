@@ -103,8 +103,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     // For now, we'll just log it
     logger.info('Error reported to external service', {
       errorId,
-      errorMessage: error.message,
-      errorStack: error.stack,
+      errorMessage: error instanceof Error ? error.message : String(error),
+      errorStack: error instanceof Error ? error.stack : undefined,
       componentStack: errorInfo.componentStack
     }, 'ERROR_REPORTING');
   };
@@ -179,19 +179,21 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   private getErrorMessage = (error: Error): string => {
     // Provide user-friendly error messages based on error types
-    if (error.message.includes('ChunkLoadError') || error.message.includes('Loading chunk')) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    
+    if (errorMessage.includes('ChunkLoadError') || errorMessage.includes('Loading chunk')) {
       return 'We couldn\'t load part of the application. This usually happens after an update.';
     }
     
-    if (error.message.includes('Network Error') || error.message.includes('fetch')) {
+    if (errorMessage.includes('Network Error') || errorMessage.includes('fetch')) {
       return 'We couldn\'t connect to our servers. Please check your internet connection.';
     }
     
-    if (error.message.includes('GitHub') || error.message.includes('authentication')) {
+    if (errorMessage.includes('GitHub') || errorMessage.includes('authentication')) {
       return 'We couldn\'t load your GitHub data. You may need to reconnect your account.';
     }
     
-    if (error.message.includes('validation') || error.message.includes('data')) {
+    if (errorMessage.includes('validation') || errorMessage.includes('data')) {
       return 'We encountered an issue with your data. Please try refreshing the page.';
     }
 
@@ -218,7 +220,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     }
 
     // Show "Go Home" for navigation errors or when retries are exhausted
-    if (!canRetry || error.message.includes('route') || error.message.includes('navigation')) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (!canRetry || errorMessage.includes('route') || errorMessage.includes('navigation')) {
       actions.push({
         label: 'Return to Dashboard',
         icon: Home,
@@ -229,7 +232,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     }
 
     // Show "Reload Page" for chunk loading errors
-    if (error.message.includes('ChunkLoadError') || error.message.includes('Loading chunk')) {
+    if (errorMessage.includes('ChunkLoadError') || errorMessage.includes('Loading chunk')) {
       actions.push({
         label: 'Reload Page',
         icon: RefreshCw,
@@ -359,8 +362,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                   Technical Details
                 </summary>
                 <div className="mt-2 p-3 bg-gray-100 rounded text-xs font-mono text-gray-600 overflow-auto max-h-32">
-                  <p><strong>Error:</strong> {error.message}</p>
-                  {error.stack && (
+                  <p><strong>Error:</strong> {error instanceof Error ? error.message : String(error)}</p>
+                  {error instanceof Error && error.stack && (
                     <pre className="mt-2 whitespace-pre-wrap">{error.stack}</pre>
                   )}
                 </div>

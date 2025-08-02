@@ -133,7 +133,7 @@ export class SingularityHealthCheck {
         component: 'MCP Connectivity',
         status: 'critical',
         message: 'MCP connectivity check failed',
-        details: { error: error.message },
+        details: { error: error instanceof Error ? error.message : String(error) },
         timestamp: new Date().toISOString()
       };
     }
@@ -188,7 +188,7 @@ export class SingularityHealthCheck {
         component: 'Authentication System',
         status: 'critical',
         message: 'Authentication check failed',
-        details: { error: error.message },
+        details: { error: error instanceof Error ? error.message : String(error) },
         timestamp: new Date().toISOString()
       };
     }
@@ -197,7 +197,7 @@ export class SingularityHealthCheck {
   private async checkDatabaseConnectivity(): Promise<HealthCheckResult> {
     try {
       // Check Firestore connectivity
-      const canAccessFirestore = typeof window !== 'undefined' && window.firebase;
+      const canAccessFirestore = typeof window !== 'undefined' && (window as any).firebase;
       
       return {
         component: 'Database Connectivity',
@@ -211,7 +211,7 @@ export class SingularityHealthCheck {
         component: 'Database Connectivity',
         status: 'critical',
         message: 'Database connectivity check failed',
-        details: { error: error.message },
+        details: { error: error instanceof Error ? error.message : String(error) },
         timestamp: new Date().toISOString()
       };
     }
@@ -242,7 +242,7 @@ export class SingularityHealthCheck {
         component: 'Interactive Components',
         status: 'critical',
         message: 'Interactive components check failed',
-        details: { error: error.message },
+        details: { error: error instanceof Error ? error.message : String(error) },
         timestamp: new Date().toISOString()
       };
     }
@@ -269,7 +269,7 @@ export class SingularityHealthCheck {
         component: 'Logging System',
         status: 'critical',
         message: 'Logging system check failed',
-        details: { error: error.message },
+        details: { error: error instanceof Error ? error.message : String(error) },
         timestamp: new Date().toISOString()
       };
     }
@@ -296,7 +296,7 @@ export class SingularityHealthCheck {
         component: 'Real-time Features',
         status: 'critical',
         message: 'Real-time features check failed',
-        details: { error: error.message },
+        details: { error: error instanceof Error ? error.message : String(error) },
         timestamp: new Date().toISOString()
       };
     }

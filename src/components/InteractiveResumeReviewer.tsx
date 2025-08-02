@@ -54,7 +54,7 @@ export function InteractiveResumeReviewer() {
       // Analyze with MCP
       await analyzeResume(text);
     } catch (error) {
-      terminalLogger.error('InteractiveResumeReviewer', 'File processing failed', { error: error.message });
+      terminalLogger.error('InteractiveResumeReviewer', 'File processing failed', { error: error instanceof Error ? error.message : String(error) });
     } finally {
       setIsAnalyzing(false);
     }

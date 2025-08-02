@@ -78,7 +78,7 @@ export function SystemStatusDashboard() {
       
     } catch (error) {
       terminalLogger.error('SystemStatusDashboard', 'Status check failed', {
-        error: error.message
+        error: error instanceof Error ? error.message : String(error)
       });
     }
   };
@@ -98,7 +98,7 @@ export function SystemStatusDashboard() {
       
     } catch (error) {
       terminalLogger.error('SystemStatusDashboard', 'Deployment verification failed', {
-        error: error.message
+        error: error instanceof Error ? error.message : String(error)
       });
     } finally {
       setIsRefreshing(false);
